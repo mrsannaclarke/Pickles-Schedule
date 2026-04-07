@@ -26,6 +26,29 @@ export default function AboutScreen() {
     <View style={styles.container}>
       <Text style={styles.text}>Signed in: {auth.user?.email ?? 'Unknown'}</Text>
 
+      <View style={styles.infoBlock}>
+        <Text style={styles.infoTitle}>@Tattoo Crew PICKLES APP SHIT</Text>
+        <Text style={styles.text}>
+          iPhone users:{'\n'}
+          open: https://mrsannaclarke.github.io/Pickles-Schedule{'\n'}
+          click share icon{'\n'}
+          scroll down{'\n'}
+          find + add to Home Screen.
+        </Text>
+        <Text style={styles.text}>Android users: ask bree.</Text>
+        <Text style={styles.text}>
+          Kevin and Jacob have guest login access with first name + password: Tomma3021!
+        </Text>
+        <Text style={styles.text}>Everyone else logs in with their Gmail account.</Text>
+        <Text style={styles.text}>Sign up forms + sign up entry sheets are generated 5 days in advance.</Text>
+        <Text style={styles.text}>
+          Working people can upload one sheet of flash each, and it should appear on the sign up form.
+        </Text>
+        <Text style={styles.text}>Tomma: delete the old app shortcut and use this one instead.</Text>
+        <Text style={styles.text}>The Sign Up page shows a yellow star on games with a solo artist signed up.</Text>
+        <Text style={styles.text}>If anything looks wrong, report it so we can patch it fast.</Text>
+      </View>
+
       <Pressable style={styles.submissionsButton} onPress={openSubmissions}>
         <Text style={styles.submissionsButtonText}>Open Shared Submissions</Text>
       </Pressable>
@@ -57,6 +80,20 @@ const styles = StyleSheet.create({
   text: {
     color: '#d2dae0',
     lineHeight: 22,
+  },
+  infoBlock: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#3b444d',
+    borderRadius: 12,
+    backgroundColor: '#1a2026',
+    padding: 12,
+    gap: 8,
+  },
+  infoTitle: {
+    color: '#f0f6fb',
+    fontSize: 16,
+    fontWeight: '800',
   },
   creditLink: {
     color: '#8cc7ff',

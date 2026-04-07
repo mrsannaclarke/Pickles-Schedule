@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -46,9 +45,14 @@ const WEB_SELECT_STYLE = {
 
 const TOMMA_DEFAULT_LOGIN_EMAIL = 'anatomytattoo@gmail.com';
 const TOMMA_DEFAULT_SIGNUP_NAME = 'Tomma';
+const SLOT_3_ONLY_NAMES = new Set(['kevin', 'jacob', 'jason']);
 
 function normalizeName(value: string): string {
   return value.replace(/\s*\([^)]*\)\s*$/, '').replace(/[’']s$/i, '').trim().toLowerCase();
+}
+
+function isCounterOnlyName(value: string): boolean {
+  return SLOT_3_ONLY_NAMES.has(normalizeName(value));
 }
 
 function deriveClaimName(user: NonNullable<ReturnType<typeof useAuth>['user']>, adminClaimName: string): string {
@@ -186,6 +190,7 @@ export default function GameDetailsScreen() {
 
   const isAssigned = staffNames.some(name => userKeys.includes(normalizeName(name)));
   const canUploadArt = Boolean(user && (user.canViewInfo || isAssigned));
+  const canCancelMySpot = Boolean(user && isAssigned);
   const canOptOut = canManageGameOptOut(user);
   const calendarUrl = useMemo(() => (event ? buildGoogleCalendarUrl(event, staffNames) : null), [event, staffNames]);
 
@@ -322,6 +327,12 @@ export default function GameDetailsScreen() {
 
   const setSlot = async (slot: number) => {
     if (!event || !user) return;
+    const selectedName = staffNameDraft.trim();
+
+    if (selectedName && isCounterOnlyName(selectedName) && slot !== 3) {
+      notify('Counter Slot Rule', 'Kevin, Jacob, and Jason can only be assigned to slot 3.');
+      return;
+    }
 
     setSettingSlot(slot);
     try {
@@ -329,7 +340,7 @@ export default function GameDetailsScreen() {
         event,
         user,
         slot,
-        staffName: staffNameDraft.trim(),
+        staffName: selectedName,
       });
       if (result.status === 'error') {
         notify('Update failed', result.message);
@@ -513,45 +524,79 @@ export default function GameDetailsScreen() {
                 <Text style={styles.primaryButtonText}>{claiming ? 'Signing Up...' : 'Sign Up'}</Text>
               </Pressable>
 
-              {canOptOut ? (
-                <Pressable
-                  disabled={optingOut}
-                  style={[styles.primaryButton, styles.optOutActionButton, optingOut ? styles.disabledButton : null]}
-                  onPress={() => {
-                    void optOut();
-                  }}>
-                  <Ionicons name="remove-circle" size={18} color="#f5fff8" />
-                  <Text style={styles.primaryButtonText}>{optingOut ? 'Opting Out...' : 'Opt Out Game'}</Text>
-                </Pressable>
-              ) : null}
+              <Pressable
+                disabled={!canCancelMySpot || cancellingMine}
+                style={[
+                  styles.primaryButton,
+                  styles.cancelActionButton,
+                  !canCancelMySpot || cancellingMine ? styles.disabledButton : null,
+                ]}
+                onPress={() => {
+                  void cancelMySpot();
+                }}>
+                <Ionicons name="remove-circle" size={18} color="#f5fff8" />
+                <Text style={styles.primaryButtonText}>{cancellingMine ? 'Cancelling...' : 'Cancel My Reservation'}</Text>
+              </Pressable>
             </View>
 
-            <Pressable
-              disabled={cancellingMine}
-              style={[styles.secondaryButton, cancellingMine ? styles.disabledButton : null]}
-              onPress={() => {
-                void cancelMySpot();
-              }}>
-              <Text style={styles.secondaryButtonText}>{cancellingMine ? 'Cancelling...' : 'Cancel My Reservation'}</Text>
-            </Pressable>
+            {canOptOut ? (
+              <Pressable
+                disabled={optingOut}
+                style={[styles.secondaryButton, optingOut ? styles.disabledButton : null]}
+                onPress={() => {
+                  void optOut();
+                }}>
+                <Text style={styles.secondaryButtonText}>{optingOut ? 'Opting Out...' : 'Anatomy Opt Out of Game'}</Text>
+              </Pressable>
+            ) : null}
 
             {user?.canViewInfo ? (
               <View style={styles.adminEditorWrap}>
                 <Text style={styles.inputLabel}>Change Tattooer (admin)</Text>
-                <TextInput
-                  value={staffNameDraft}
-                  onChangeText={setStaffNameDraft}
-                  placeholder="Name (leave blank to clear)"
-                  placeholderTextColor="#8d99a3"
-                  style={styles.input}
-                  autoCapitalize="words"
-                />
+                {Platform.OS === 'web' ? (
+                  <View style={styles.adminSelectWrap}>
+                    <select
+                      value={staffNameDraft}
+                      onChange={(event: any) => setStaffNameDraft(String(event.target.value))}
+                      style={WEB_SELECT_STYLE as any}>
+                      <option value="">Clear slot</option>
+                      {adminClaimOptions.map(name => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </View>
+                ) : (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.adminChipRow}>
+                    <Pressable
+                      style={[styles.adminChip, staffNameDraft.trim() === '' ? styles.adminChipActive : null]}
+                      onPress={() => setStaffNameDraft('')}>
+                      <Text style={[styles.adminChipText, staffNameDraft.trim() === '' ? styles.adminChipTextActive : null]}>Clear</Text>
+                    </Pressable>
+                    {adminClaimOptions.map(name => (
+                      <Pressable
+                        key={name}
+                        style={[styles.adminChip, normalizeName(staffNameDraft) === normalizeName(name) ? styles.adminChipActive : null]}
+                        onPress={() => setStaffNameDraft(name)}>
+                        <Text style={[styles.adminChipText, normalizeName(staffNameDraft) === normalizeName(name) ? styles.adminChipTextActive : null]}>
+                          {name}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                )}
                 <View style={styles.slotButtonRow}>
                   {[1, 2, 3].map(slot => (
                     <Pressable
                       key={slot}
-                      disabled={settingSlot === slot}
-                      style={[styles.slotButton, settingSlot === slot ? styles.disabledButton : null]}
+                      disabled={(staffNameDraft.trim() !== '' && isCounterOnlyName(staffNameDraft) && slot !== 3) || settingSlot === slot}
+                      style={[
+                        styles.slotButton,
+                        (staffNameDraft.trim() !== '' && isCounterOnlyName(staffNameDraft) && slot !== 3) || settingSlot === slot
+                          ? styles.disabledButton
+                          : null,
+                      ]}
                       onPress={() => {
                         void setSlot(slot);
                       }}>
@@ -559,6 +604,9 @@ export default function GameDetailsScreen() {
                     </Pressable>
                   ))}
                 </View>
+                {staffNameDraft.trim() !== '' && isCounterOnlyName(staffNameDraft) ? (
+                  <Text style={styles.counterRuleText}>Kevin, Jacob, and Jason can only be assigned to slot 3.</Text>
+                ) : null}
               </View>
             ) : null}
           </View>
@@ -729,8 +777,8 @@ const styles = StyleSheet.create({
   signActionButton: {
     backgroundColor: '#2f6fed',
   },
-  optOutActionButton: {
-    backgroundColor: '#8b1f1f',
+  cancelActionButton: {
+    backgroundColor: '#734050',
   },
   primaryButtonText: {
     color: '#f5fff8',
@@ -789,15 +837,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#3f4a54',
-    borderRadius: 8,
-    backgroundColor: '#1b2127',
-    color: '#f2f6fa',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
   slotButtonRow: {
     flexDirection: 'row',
     gap: 8,
@@ -812,6 +851,11 @@ const styles = StyleSheet.create({
   slotButtonText: {
     color: '#e5edf3',
     fontWeight: '700',
+  },
+  counterRuleText: {
+    color: '#ffd0d0',
+    fontSize: 12,
+    lineHeight: 16,
   },
   disabledButton: {
     backgroundColor: '#3a4046',
