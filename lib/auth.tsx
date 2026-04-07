@@ -56,7 +56,7 @@ const GUEST_PASSWORD = 'Tomma3021!';
 const AUTH_STORAGE_KEY = 'pickles_schedule_auth_user_v1';
 const DEFAULT_WEB_CLIENT_ID =
   '782128846272-hvq1st144odrrq2vuhdjc6gtlrrsfgbf.apps.googleusercontent.com';
-const DEFAULT_PROD_WEB_REDIRECT_URI = 'https://mrsannaclarke.github.io/Pickles-Schedule';
+const DEFAULT_PROD_WEB_REDIRECT_URI = 'https://mrsannaclarke.github.io/Pickles-Schedule/';
 
 function resolveWebRedirectUri(): string {
   const explicit = process.env.EXPO_PUBLIC_GOOGLE_WEB_REDIRECT_URI;
@@ -66,8 +66,8 @@ function resolveWebRedirectUri(): string {
     const host = String(window.location.hostname || '').toLowerCase();
     const origin = String(window.location.origin || '').replace(/\/+$/, '');
 
-    if (host === 'localhost' || host === '127.0.0.1') return origin;
-    return `${origin}/Pickles-Schedule`;
+    if (host === 'localhost' || host === '127.0.0.1') return `${origin}/`;
+    return `${origin}/Pickles-Schedule/`;
   }
 
   return DEFAULT_PROD_WEB_REDIRECT_URI;
