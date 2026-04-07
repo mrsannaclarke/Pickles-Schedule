@@ -389,8 +389,31 @@ export async function pickAndUploadEventArt(input: {
   user: UploadUser;
 }): Promise<UploadArtResult> {
   const selection = await pickImage();
-  if (selection.cancelled) return { status: 'cancelled' };
+  if (selection.cancelled) {
+    fireAndForgetAuditLog({
+      eventType: 'upload_art_cancelled',
+      status: 'info',
+      message: 'User cancelled image selection.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+    });
+    return { status: 'cancelled' };
+  }
   if (!selection.base64) {
+    fireAndForgetAuditLog({
+      eventType: 'upload_art',
+      status: 'error',
+      message: 'Selected image could not be read.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      details: { fileName: selection.fileName, mimeType: selection.mimeType },
+    });
     return { status: 'error', message: 'Selected image could not be read. Please try another file.' };
   }
 
