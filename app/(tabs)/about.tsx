@@ -1,10 +1,12 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { SHARED_SUBMISSIONS_URL } from '@/lib/app-links';
+import { AUDIT_LOG_URL, SHARED_SUBMISSIONS_URL } from '@/lib/app-links';
 import { useAuth } from '@/lib/auth';
 
 export default function AboutScreen() {
   const auth = useAuth();
+  const emailKey = (auth.user?.email || '').trim().toLowerCase();
+  const canOpenAuditLog = emailKey === 'admin@anatomytattoo.com' || emailKey === 'anatomytattoo@gmail.com';
 
   if (!auth.user?.canViewInfo) {
     return (
@@ -16,6 +18,10 @@ export default function AboutScreen() {
 
   const openSubmissions = () => {
     void Linking.openURL(SHARED_SUBMISSIONS_URL);
+  };
+
+  const openAuditLog = () => {
+    void Linking.openURL(AUDIT_LOG_URL);
   };
 
   const openAnnaMail = () => {
@@ -62,6 +68,12 @@ export default function AboutScreen() {
       <Pressable style={styles.submissionsButton} onPress={openSubmissions}>
         <Text style={styles.submissionsButtonText}>Open Shared Submissions</Text>
       </Pressable>
+
+      {canOpenAuditLog ? (
+        <Pressable style={styles.auditButton} onPress={openAuditLog}>
+          <Text style={styles.auditButtonText}>Open Audit Log</Text>
+        </Pressable>
+      ) : null}
 
       <Text style={styles.text}>
         Made by{' '}
@@ -115,6 +127,19 @@ const styles = StyleSheet.create({
   },
   submissionsButtonText: {
     color: '#f5fff8',
+    fontWeight: '700',
+  },
+  auditButton: {
+    marginTop: 2,
+    backgroundColor: '#2b333a',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#50606e',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  auditButtonText: {
+    color: '#e8f0f7',
     fontWeight: '700',
   },
   signOutButton: {
