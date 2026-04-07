@@ -260,6 +260,7 @@ export default function MyGamesScreen() {
                     key={event.id}
                     event={event}
                     isUploading={uploadingEventId === event.id}
+                    muted
                     onOpenUrl={openUrl}
                     onUploadArt={uploadArt}
                     onOpenDetails={openGameDetails}
@@ -277,12 +278,14 @@ export default function MyGamesScreen() {
 function EventCard({
   event,
   isUploading,
+  muted,
   onOpenUrl,
   onUploadArt,
   onOpenDetails,
 }: {
   event: ScheduleEvent;
   isUploading: boolean;
+  muted?: boolean;
   onOpenUrl: (url: string) => void;
   onUploadArt: (event: ScheduleEvent) => void;
   onOpenDetails: (event: ScheduleEvent) => void;
@@ -295,7 +298,11 @@ function EventCard({
 
   return (
     <Pressable
-      style={[styles.card, { borderColor: teamMeta.tint, backgroundColor: teamMeta.cardBackground }]}
+      style={[
+        styles.card,
+        { borderColor: teamMeta.tint, backgroundColor: teamMeta.cardBackground },
+        muted ? styles.mutedCard : null,
+      ]}
       onPress={() => {
         onOpenDetails(event);
       }}>
@@ -476,6 +483,10 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     gap: 4,
+  },
+  mutedCard: {
+    backgroundColor: '#1f2429',
+    borderColor: '#4a525a',
   },
   themeRow: {
     flexDirection: 'row',

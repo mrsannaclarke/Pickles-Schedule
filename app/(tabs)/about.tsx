@@ -36,23 +36,6 @@ export default function AboutScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Signed in: {auth.user?.email ?? 'Unknown'}</Text>
-
-      <View style={styles.infoBlock}>
-        <Text style={styles.infoTitle}>@Tattoo Crew PICKLES APP SHIT</Text>
-        <Text style={styles.text}>{`iPhone users:\n`}</Text>
-        <Text style={styles.text}>Sign up forms + sign up entry sheets are generated 5 days in advance.</Text>
-        <Text style={styles.text}>
-          Working people can upload one sheet of flash each, and it should appear on the sign up form.
-        </Text>
-        <Text style={styles.text}>The Sign Up page shows a yellow star on games with a solo artist signed up.</Text>
-        <Text style={styles.text}>If anything looks wrong, report it so we can patch it fast.</Text>
-      </View>
-
-      <Pressable style={styles.submissionsButton} onPress={openSubmissions}>
-        <Text style={styles.submissionsButtonText}>Open Shared Submissions</Text>
-      </Pressable>
-
       <View style={styles.linksRow}>
         <Pressable style={[styles.teamLinkButton, styles.picklesLinkButton]} onPress={openPicklesSite}>
           <Text style={styles.teamLinkText}>Pickles</Text>
@@ -64,6 +47,21 @@ export default function AboutScreen() {
           <Text style={styles.teamLinkText}>Bangers</Text>
         </Pressable>
       </View>
+
+      <Text style={styles.text}>Signed in: {auth.user?.email ?? 'Unknown'}</Text>
+
+      <View style={styles.infoBlock}>
+        <Text style={styles.text}>Sign up forms + sign up entry sheets are generated 5 days in advance.</Text>
+        <Text style={styles.text}>
+          Working people can upload one sheet of flash each, and it should appear on the sign up form.
+        </Text>
+        <Text style={styles.text}>The Sign Up page shows a yellow star on games with a solo artist signed up.</Text>
+        <Text style={styles.text}>If anything looks wrong, report it so we can patch it fast.</Text>
+      </View>
+
+      <Pressable style={styles.submissionsButton} onPress={openSubmissions}>
+        <Text style={styles.submissionsButtonText}>Open Shared Submissions</Text>
+      </Pressable>
 
       <Text style={styles.text}>
         Made by{' '}
@@ -84,14 +82,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#111417',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
     padding: 20,
     gap: 12,
   },
   text: {
     color: '#d2dae0',
     lineHeight: 22,
+    textAlign: 'center',
   },
   infoBlock: {
     width: '100%',
@@ -101,11 +100,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a2026',
     padding: 12,
     gap: 8,
-  },
-  infoTitle: {
-    color: '#f0f6fb',
-    fontSize: 16,
-    fontWeight: '800',
   },
   creditLink: {
     color: '#8cc7ff',
@@ -139,6 +133,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 4,
+    marginBottom: 2,
   },
   teamLinkButton: {
     borderRadius: 10,
