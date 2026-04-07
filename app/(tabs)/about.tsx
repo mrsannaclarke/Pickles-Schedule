@@ -22,29 +22,29 @@ export default function AboutScreen() {
     void Linking.openURL('mailto:admin@anatomytattoo.com?subject=pickles%20app');
   };
 
+  const openPicklesSite = () => {
+    void Linking.openURL('https://www.portlandpicklesbaseball.com');
+  };
+
+  const openCherryBombsSite = () => {
+    void Linking.openURL('https://www.cherrybombsfc.com');
+  };
+
+  const openBangersSite = () => {
+    void Linking.openURL('https://www.portlandbangers.com');
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Signed in: {auth.user?.email ?? 'Unknown'}</Text>
 
       <View style={styles.infoBlock}>
         <Text style={styles.infoTitle}>@Tattoo Crew PICKLES APP SHIT</Text>
-        <Text style={styles.text}>
-          iPhone users:{'\n'}
-          open: https://mrsannaclarke.github.io/Pickles-Schedule{'\n'}
-          click share icon{'\n'}
-          scroll down{'\n'}
-          find + add to Home Screen.
-        </Text>
-        <Text style={styles.text}>Android users: ask bree.</Text>
-        <Text style={styles.text}>
-          Kevin and Jacob have guest login access with first name + password: Tomma3021!
-        </Text>
-        <Text style={styles.text}>Everyone else logs in with their Gmail account.</Text>
+        <Text style={styles.text}>{`iPhone users:\n`}</Text>
         <Text style={styles.text}>Sign up forms + sign up entry sheets are generated 5 days in advance.</Text>
         <Text style={styles.text}>
           Working people can upload one sheet of flash each, and it should appear on the sign up form.
         </Text>
-        <Text style={styles.text}>Tomma: delete the old app shortcut and use this one instead.</Text>
         <Text style={styles.text}>The Sign Up page shows a yellow star on games with a solo artist signed up.</Text>
         <Text style={styles.text}>If anything looks wrong, report it so we can patch it fast.</Text>
       </View>
@@ -52,6 +52,18 @@ export default function AboutScreen() {
       <Pressable style={styles.submissionsButton} onPress={openSubmissions}>
         <Text style={styles.submissionsButtonText}>Open Shared Submissions</Text>
       </Pressable>
+
+      <View style={styles.linksRow}>
+        <Pressable style={[styles.teamLinkButton, styles.picklesLinkButton]} onPress={openPicklesSite}>
+          <Text style={styles.teamLinkText}>Pickles</Text>
+        </Pressable>
+        <Pressable style={[styles.teamLinkButton, styles.cherryLinkButton]} onPress={openCherryBombsSite}>
+          <Text style={styles.teamLinkText}>Cherry Bombs</Text>
+        </Pressable>
+        <Pressable style={[styles.teamLinkButton, styles.bangersLinkButton]} onPress={openBangersSite}>
+          <Text style={styles.teamLinkText}>Bangers</Text>
+        </Pressable>
+      </View>
 
       <Text style={styles.text}>
         Made by{' '}
@@ -120,6 +132,34 @@ const styles = StyleSheet.create({
   },
   signOutButtonText: {
     color: '#ffd7de',
+    fontWeight: '700',
+  },
+  linksRow: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  teamLinkButton: {
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  picklesLinkButton: {
+    backgroundColor: '#20462c',
+    borderColor: '#3e8f58',
+  },
+  cherryLinkButton: {
+    backgroundColor: '#4e2023',
+    borderColor: '#a63f47',
+  },
+  bangersLinkButton: {
+    backgroundColor: '#4b341f',
+    borderColor: '#9a7448',
+  },
+  teamLinkText: {
+    color: '#f4f7fb',
     fontWeight: '700',
   },
 });

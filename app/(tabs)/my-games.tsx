@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useRouter } from 'expo-router';
@@ -124,7 +125,10 @@ export default function MyGamesScreen() {
     return source;
   }, [data.all, selectedViewer, user?.matchNames]);
 
-  const groups = useMemo(() => groupByDate(filteredGames), [filteredGames]);
+  const unconfirmedGames = useMemo(() => filteredGames.filter(event => event.tattooers.length === 1), [filteredGames]);
+  const confirmedGames = useMemo(() => filteredGames.filter(event => event.tattooers.length !== 1), [filteredGames]);
+  const unconfirmedGroups = useMemo(() => groupByDate(unconfirmedGames), [unconfirmedGames]);
+  const groups = useMemo(() => groupByDate(confirmedGames), [confirmedGames]);
 
   const openGameDetails = (event: ScheduleEvent) => {
     router.push({
@@ -227,6 +231,27 @@ export default function MyGamesScreen() {
           <EmptyStateCard title="No games for this selection" subtitle="Try another name from the dropdown or check back later." />
         ) : null}
 
+        {!isLoading && !errorMessage && unconfirmedGroups.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.unconfirmedHeader}>Unconfirmed</Text>
+            {unconfirmedGroups.map(group => (
+              <View key={`unconfirmed-${group.label}`} style={styles.subSection}>
+                <Text style={styles.sectionTitle}>{group.label}</Text>
+                {group.events.map(event => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    isUploading={uploadingEventId === event.id}
+                    onOpenUrl={openUrl}
+                    onUploadArt={uploadArt}
+                    onOpenDetails={openGameDetails}
+                  />
+                ))}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         {!isLoading && !errorMessage
           ? groups.map(group => (
               <View key={group.label} style={styles.section}>
@@ -274,6 +299,12 @@ function EventCard({
       onPress={() => {
         onOpenDetails(event);
       }}>
+      {event.tattooers.length === 1 ? (
+        <View style={styles.starLine}>
+          <Ionicons name="star" size={24} color="#ffd33d" />
+        </View>
+      ) : null}
+
       {photoUrls.length > 0 ? (
         <View style={styles.photoStrip}>
           {photoUrls.map((url, index) => {
@@ -425,6 +456,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
     gap: 8,
   },
+  subSection: {
+    gap: 8,
+  },
+  unconfirmedHeader: {
+    color: '#ffd33d',
+    fontSize: 19,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    marginBottom: 2,
+  },
   sectionTitle: {
     color: '#f3f5f7',
     fontSize: 18,
@@ -454,6 +495,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontSize: 16,
     fontWeight: '700',
+  },
+  starLine: {
+    alignItems: 'flex-start',
+    marginBottom: 4,
   },
   photoStrip: {
     marginTop: 4,

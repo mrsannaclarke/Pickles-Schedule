@@ -546,6 +546,7 @@ export default function GameDetailsScreen() {
                 onPress={() => {
                   void optOut();
                 }}>
+                <MaterialIcons name="close" size={18} color="#f5fff8" />
                 <Text style={styles.secondaryButtonText}>{optingOut ? 'Opting Out...' : 'Anatomy Opt Out of Game'}</Text>
               </Pressable>
             ) : null}
@@ -778,7 +779,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2f6fed',
   },
   cancelActionButton: {
-    backgroundColor: '#734050',
+    backgroundColor: '#8b1f1f',
   },
   primaryButtonText: {
     color: '#f5fff8',
@@ -790,6 +791,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#3a4046',
     paddingVertical: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
   },
   secondaryButtonText: {
     color: '#f5fff8',
