@@ -27,8 +27,7 @@ export default function TabLayout() {
           </Pressable>
         )}
 
-        <Text style={styles.guestLabel}>Counter Guest Access</Text>
-        <Text style={styles.guestHint}>First name: Jacob or Kevin</Text>
+        <Text style={styles.guestLabel}>Guest Access</Text>
         <View style={styles.guestForm}>
           <TextInput
             style={styles.guestInput}
@@ -164,11 +163,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  },
-  guestHint: {
-    color: '#9aa7b0',
-    fontSize: 12,
-    marginTop: -4,
   },
   guestForm: {
     width: '100%',
