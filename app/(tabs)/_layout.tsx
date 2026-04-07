@@ -1,11 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useAuth } from '@/lib/auth';
 
 export default function TabLayout() {
   const auth = useAuth();
+  const [guestFirstName, setGuestFirstName] = useState('');
+  const [guestPassword, setGuestPassword] = useState('');
 
   if (auth.status !== 'signed_in') {
     return (
@@ -25,15 +28,28 @@ export default function TabLayout() {
         )}
 
         <Text style={styles.guestLabel}>Counter Guest Access</Text>
-        <View style={styles.guestRow}>
-          <Pressable style={styles.guestButton} onPress={() => auth.signInAsGuest('Jacob')}>
-            <Text style={styles.guestButtonText}>Jacob</Text>
-          </Pressable>
-          <Pressable style={styles.guestButton} onPress={() => auth.signInAsGuest('Jason')}>
-            <Text style={styles.guestButtonText}>Jason</Text>
-          </Pressable>
-          <Pressable style={styles.guestButton} onPress={() => auth.signInAsGuest('Kevin')}>
-            <Text style={styles.guestButtonText}>Kevin</Text>
+        <Text style={styles.guestHint}>First name: Jacob or Kevin</Text>
+        <View style={styles.guestForm}>
+          <TextInput
+            style={styles.guestInput}
+            value={guestFirstName}
+            onChangeText={setGuestFirstName}
+            placeholder="First name"
+            placeholderTextColor="#8d99a3"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.guestInput}
+            value={guestPassword}
+            onChangeText={setGuestPassword}
+            placeholder="Password"
+            placeholderTextColor="#8d99a3"
+            secureTextEntry
+          />
+          <Pressable
+            style={styles.guestButton}
+            onPress={() => auth.signInAsGuest(guestFirstName, guestPassword)}>
+            <Text style={styles.guestButtonText}>Guest Login</Text>
           </Pressable>
         </View>
       </View>
@@ -149,16 +165,31 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  guestRow: {
-    flexDirection: 'row',
+  guestHint: {
+    color: '#9aa7b0',
+    fontSize: 12,
+    marginTop: -4,
+  },
+  guestForm: {
+    width: '100%',
+    maxWidth: 320,
     gap: 8,
-    flexWrap: 'wrap',
+  },
+  guestInput: {
+    backgroundColor: '#1b2127',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#3a4046',
+    color: '#e0e8ee',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   guestButton: {
     backgroundColor: '#2b333a',
     borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
   },
   guestButtonText: {
     color: '#e0e8ee',

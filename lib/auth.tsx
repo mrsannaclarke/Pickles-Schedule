@@ -39,6 +39,7 @@ const ALLOWED_USERS: AllowedUser[] = [
   { email: 'artsofjayden@gmail.com', displayName: 'Jayden', matchNames: ['Jayden'], canViewInfo: false },
   { email: 'jamueller01@gmail.com', displayName: 'Jayden', matchNames: ['Jayden'], canViewInfo: false },
   { email: 'luckymalony@gmail.com', displayName: 'Lucky', matchNames: ['Lucky'], canViewInfo: false },
+  { email: 'sirjasonbarnes@gmail.com', displayName: 'Jason', matchNames: ['Jason'], canViewInfo: false },
   { email: 'breannenorling@gmail.com', displayName: 'Bree', matchNames: ['Bree', 'Breanne'], canViewInfo: true },
   {
     email: 'anatomytattoo@gmail.com',
@@ -50,7 +51,8 @@ const ALLOWED_USERS: AllowedUser[] = [
   { email: 'admin@anatomytattoo.com', displayName: 'Anna', matchNames: ['Anna'], canViewInfo: true },
 ];
 
-const GUEST_COUNTER_NAMES = ['Jacob', 'Jason', 'Kevin'] as const;
+const GUEST_COUNTER_NAMES = ['Jacob', 'Kevin'] as const;
+const GUEST_PASSWORD = 'Tomma3021!';
 const AUTH_STORAGE_KEY = 'pickles_schedule_auth_user_v1';
 const DEFAULT_WEB_CLIENT_ID =
   '782128846272-hvq1st144odrrq2vuhdjc6gtlrrsfgbf.apps.googleusercontent.com';
@@ -84,7 +86,7 @@ type AuthContextValue = {
   errorMessage: string | null;
   canSignIn: boolean;
   signIn: () => Promise<void>;
-  signInAsGuest: (name: string) => void;
+  signInAsGuest: (name: string, password: string) => void;
   signOut: () => void;
 };
 
@@ -316,17 +318,23 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   };
 
-  const signInAsGuest = (name: string) => {
-    const guestName = name.trim();
-    if (!GUEST_COUNTER_NAMES.includes(guestName as (typeof GUEST_COUNTER_NAMES)[number])) {
-      setErrorMessage('Guest sign-in is only available for Jacob, Jason, or Kevin.');
+  const signInAsGuest = (name: string, password: string) => {
+    const nameKey = normalizeName(name || '');
+    const matchedName = GUEST_COUNTER_NAMES.find(allowed => normalizeName(allowed) === nameKey);
+    if (!matchedName) {
+      setErrorMessage('Guest access is only available for Jacob or Kevin.');
+      return;
+    }
+
+    if (String(password || '') !== GUEST_PASSWORD) {
+      setErrorMessage('Guest password is incorrect.');
       return;
     }
 
     setUser({
-      email: `guest:${guestName.toLowerCase()}`,
-      displayName: `${guestName} (Guest)`,
-      matchNames: [guestName],
+      email: `guest:${matchedName.toLowerCase()}`,
+      displayName: `${matchedName} (Guest)`,
+      matchNames: [matchedName],
       canViewInfo: false,
     });
     setStatus('signed_in');
