@@ -1,12 +1,15 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
-import { AUDIT_LOG_URL, SHARED_SUBMISSIONS_URL } from '@/lib/app-links';
+import { SHARED_SUBMISSIONS_URL } from '@/lib/app-links';
+import { canAccessAuditLogByEmail } from '@/lib/audit-log';
 import { useAuth } from '@/lib/auth';
 
 export default function AboutScreen() {
   const auth = useAuth();
+  const router = useRouter();
   const emailKey = (auth.user?.email || '').trim().toLowerCase();
-  const canOpenAuditLog = emailKey === 'admin@anatomytattoo.com' || emailKey === 'anatomytattoo@gmail.com';
+  const canOpenAuditLog = canAccessAuditLogByEmail(emailKey);
 
   if (!auth.user?.canViewInfo) {
     return (
@@ -20,9 +23,7 @@ export default function AboutScreen() {
     void Linking.openURL(SHARED_SUBMISSIONS_URL);
   };
 
-  const openAuditLog = () => {
-    void Linking.openURL(AUDIT_LOG_URL);
-  };
+  const openAuditLog = () => router.push('/audit-log');
 
   const openAnnaMail = () => {
     void Linking.openURL('mailto:admin@anatomytattoo.com?subject=pickles%20app');

@@ -20,6 +20,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="game/[eventId]" options={{ title: 'Game' }} />
+        <Stack.Screen name="audit-log" options={{ title: 'Audit Log' }} />
       </Stack>
     </AuthProvider>
   );
