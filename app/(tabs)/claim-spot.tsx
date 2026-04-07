@@ -6,6 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 
 import { claimEventSpot } from '@/lib/claim-spot';
+import { validateClaimRule } from '@/lib/claim-rules';
 import { useAuth } from '@/lib/auth';
 import { EmptyStateCard, ErrorStateCard, LoadingStateCard } from '@/lib/fancy-feedback';
 import { canManageGameOptOut, confirmGameOptOut, optOutGameForEveryone } from '@/lib/game-opt-out';
@@ -45,6 +46,16 @@ const TOMMA_DEFAULT_SIGNUP_NAME = 'Tomma';
 
 function normalizeName(value: string) {
   return value.replace(/\s*\([^)]*\)\s*$/, '').replace(/[’']s$/i, '').trim().toLowerCase();
+}
+
+function deriveClaimName(user: NonNullable<ReturnType<typeof useAuth>['user']>, adminClaimName: string): string {
+  if (user.canViewInfo) return adminClaimName.trim();
+  return (
+    user.matchNames.find(name => name && name.trim().length > 0)?.trim() ||
+    user.displayName ||
+    user.email.split('@')[0] ||
+    ''
+  );
 }
 
 export default function ClaimSpotScreen() {
@@ -132,15 +143,26 @@ export default function ClaimSpotScreen() {
       return;
     }
 
-    const claimName = user.canViewInfo ? adminClaimName.trim() : '';
-    if (user.canViewInfo && !claimName) {
+    const claimName = deriveClaimName(user, adminClaimName);
+    if (!claimName) {
       notify('Choose an artist', 'Select who to sign up as first.');
+      return;
+    }
+
+    const claimRule = validateClaimRule(event, claimName);
+    if (!claimRule.ok) {
+      notify('Sign Up Blocked', claimRule.message || 'This signer cannot claim this game.');
       return;
     }
 
     setClaimingEventId(event.id);
     try {
-      const result = await claimEventSpot({ event, user, claimName: claimName || undefined });
+      const result = await claimEventSpot({
+        event,
+        user,
+        claimName,
+        requestedSlot: claimRule.requestedSlot,
+      });
       if (result.status === 'error') {
         notify('Claim failed', result.message);
         return;

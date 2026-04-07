@@ -18,6 +18,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { deleteEventArt, pickAndUploadEventArt } from '@/lib/art-upload';
 import { useAuth } from '@/lib/auth';
 import { claimEventSpot } from '@/lib/claim-spot';
+import { validateClaimRule } from '@/lib/claim-rules';
 import { EmptyStateCard, ErrorStateCard, LoadingStateCard } from '@/lib/fancy-feedback';
 import { canManageGameOptOut, confirmGameOptOut, optOutGameForEveryone } from '@/lib/game-opt-out';
 import { confirmAction, notify } from '@/lib/notify';
@@ -48,6 +49,16 @@ const TOMMA_DEFAULT_SIGNUP_NAME = 'Tomma';
 
 function normalizeName(value: string): string {
   return value.replace(/\s*\([^)]*\)\s*$/, '').replace(/[’']s$/i, '').trim().toLowerCase();
+}
+
+function deriveClaimName(user: NonNullable<ReturnType<typeof useAuth>['user']>, adminClaimName: string): string {
+  if (user.canViewInfo) return adminClaimName.trim();
+  return (
+    user.matchNames.find(name => name && name.trim().length > 0)?.trim() ||
+    user.displayName ||
+    user.email.split('@')[0] ||
+    ''
+  );
 }
 
 function toGoogleCalendarDateUtc(value: Date): string {
@@ -238,15 +249,26 @@ export default function GameDetailsScreen() {
       return;
     }
 
-    const claimName = user.canViewInfo ? adminClaimName.trim() : '';
-    if (user.canViewInfo && !claimName) {
+    const claimName = deriveClaimName(user, adminClaimName);
+    if (!claimName) {
       notify('Choose an artist', 'Select who to sign up as first.');
+      return;
+    }
+
+    const claimRule = validateClaimRule(event, claimName);
+    if (!claimRule.ok) {
+      notify('Sign Up Blocked', claimRule.message || 'This signer cannot claim this game.');
       return;
     }
 
     setClaiming(true);
     try {
-      const result = await claimEventSpot({ event, user, claimName: claimName || undefined });
+      const result = await claimEventSpot({
+        event,
+        user,
+        claimName,
+        requestedSlot: claimRule.requestedSlot,
+      });
       if (result.status === 'error') {
         notify('Sign up failed', result.message);
         return;

@@ -19,6 +19,7 @@ type ClaimPayload = {
   userCanViewInfo: boolean;
   tattooers: string[];
   claimName: string;
+  requestedSlot?: number;
 };
 
 type ClaimResponse = {
@@ -37,6 +38,7 @@ export async function claimEventSpot(input: {
   event: ScheduleEvent;
   user: ClaimUser;
   claimName?: string;
+  requestedSlot?: number;
 }): Promise<ClaimSpotResult> {
   const preferredName =
     (input.claimName && input.claimName.trim().length > 0 ? input.claimName.trim() : '') ||
@@ -56,6 +58,10 @@ export async function claimEventSpot(input: {
     userCanViewInfo: input.user.canViewInfo,
     tattooers: input.event.tattooers,
     claimName: preferredName,
+    requestedSlot:
+      typeof input.requestedSlot === 'number' && input.requestedSlot >= 1 && input.requestedSlot <= 3
+        ? input.requestedSlot
+        : undefined,
   };
 
   let response: Response;

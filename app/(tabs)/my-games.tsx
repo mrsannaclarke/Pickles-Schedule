@@ -12,7 +12,6 @@ import {
   filterEventsByAnyTattooer,
   filterEventsByStaff,
   formatEventDate,
-  hasMinimumPublishedStaff,
   TEAM_META,
   toThumbnailUrl,
   type ScheduleEvent,
@@ -122,7 +121,7 @@ export default function MyGamesScreen() {
         ? filterEventsByAnyTattooer(data.all, user?.matchNames ?? [])
         : filterEventsByStaff(data.all, selectedViewer);
 
-    return source.filter(event => hasMinimumPublishedStaff(event));
+    return source;
   }, [data.all, selectedViewer, user?.matchNames]);
 
   const groups = useMemo(() => groupByDate(filteredGames), [filteredGames]);
