@@ -1,4 +1,5 @@
 import { SCHEDULE_ENDPOINT, type ScheduleEvent } from '@/lib/schedule';
+import { fireAndForgetAuditLog } from '@/lib/audit-log';
 
 type ClaimUser = {
   email: string;
@@ -26,6 +27,7 @@ type ClaimResponse = {
   ok?: boolean;
   error?: string;
   message?: string;
+  rowNumber?: number;
   slot?: number;
   claimName?: string;
 };
@@ -74,6 +76,18 @@ export async function claimEventSpot(input: {
       body: JSON.stringify(payload),
     });
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'claim_spot',
+      status: 'error',
+      message: 'Network error while claiming a spot.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      claimName: preferredName,
+      details: { requestedSlot: input.requestedSlot ?? null },
+    });
     return { status: 'error', message: 'Network error while claiming a spot.' };
   }
 
@@ -82,15 +96,56 @@ export async function claimEventSpot(input: {
   try {
     parsed = JSON.parse(raw) as ClaimResponse;
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'claim_spot',
+      status: 'error',
+      message: 'Claim endpoint returned an invalid response.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      claimName: preferredName,
+      details: { requestedSlot: input.requestedSlot ?? null, httpStatus: response.status },
+    });
     return { status: 'error', message: 'Claim endpoint returned an invalid response.' };
   }
 
   if (!response.ok || parsed.error || !parsed.ok) {
+    fireAndForgetAuditLog({
+      eventType: 'claim_spot',
+      status: 'error',
+      message: parsed.error || parsed.message || `Claim failed (HTTP ${response.status}).`,
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      claimName: preferredName,
+      rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+      slot: typeof parsed.slot === 'number' ? parsed.slot : undefined,
+      details: { requestedSlot: input.requestedSlot ?? null, httpStatus: response.status },
+    });
     return {
       status: 'error',
       message: parsed.error || parsed.message || `Claim failed (HTTP ${response.status}).`,
     };
   }
+
+  fireAndForgetAuditLog({
+    eventType: 'claim_spot',
+    status: 'success',
+    message: parsed.message || 'Spot claimed successfully.',
+    user: input.user,
+    team: input.event.team,
+    dateLabel: input.event.dateLabel ?? '',
+    theme: input.event.theme ?? '',
+    signUpUrl: input.event.signUpUrl ?? '',
+    claimName: parsed.claimName ?? preferredName,
+    rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+    slot: typeof parsed.slot === 'number' ? parsed.slot : undefined,
+    details: { requestedSlot: input.requestedSlot ?? null, httpStatus: response.status },
+  });
 
   return {
     status: 'success',

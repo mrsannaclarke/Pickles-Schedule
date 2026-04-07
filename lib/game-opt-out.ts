@@ -1,4 +1,5 @@
 import { confirmAction } from '@/lib/notify';
+import { fireAndForgetAuditLog } from '@/lib/audit-log';
 import { SCHEDULE_ENDPOINT, type ScheduleEvent } from '@/lib/schedule';
 
 type OptOutUser = {
@@ -94,6 +95,16 @@ export async function optOutGameForEveryone(input: {
       body: JSON.stringify(payload),
     });
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'opt_out_game',
+      status: 'error',
+      message: 'Network error while opting out game.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+    });
     return { status: 'error', message: 'Network error while opting out game.' };
   }
 
@@ -102,15 +113,51 @@ export async function optOutGameForEveryone(input: {
   try {
     parsed = JSON.parse(raw) as OptOutResponse;
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'opt_out_game',
+      status: 'error',
+      message: 'Opt-out endpoint returned an invalid response.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      details: { httpStatus: response.status },
+    });
     return { status: 'error', message: 'Opt-out endpoint returned an invalid response.' };
   }
 
   if (!response.ok || parsed.error || !parsed.ok) {
+    fireAndForgetAuditLog({
+      eventType: 'opt_out_game',
+      status: 'error',
+      message: parsed.error || parsed.message || `Opt out failed (HTTP ${response.status}).`,
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+      details: { httpStatus: response.status },
+    });
     return {
       status: 'error',
       message: parsed.error || parsed.message || `Opt out failed (HTTP ${response.status}).`,
     };
   }
+
+  fireAndForgetAuditLog({
+    eventType: 'opt_out_game',
+    status: 'success',
+    message: parsed.message || 'Game opted out successfully.',
+    user: input.user,
+    team: input.event.team,
+    dateLabel: input.event.dateLabel ?? '',
+    theme: input.event.theme ?? '',
+    signUpUrl: input.event.signUpUrl ?? '',
+    rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+    details: { httpStatus: response.status },
+  });
 
   return {
     status: 'success',

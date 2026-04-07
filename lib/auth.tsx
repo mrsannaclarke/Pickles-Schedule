@@ -3,6 +3,8 @@ import * as Google from 'expo-auth-session/providers/google';
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { fireAndForgetAuditLog } from '@/lib/audit-log';
+
 WebBrowser.maybeCompleteAuthSession();
 
 type AllowedUser = {
@@ -264,6 +266,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const allowlisted = allowedUserForEmail(info.email);
 
         if (ALLOWED_USERS.length > 0 && !allowlisted) {
+          fireAndForgetAuditLog({
+            eventType: 'auth_google_sign_in_denied',
+            status: 'error',
+            message: 'Signed in account is not on allowlist.',
+            user: {
+              email: info.email,
+              displayName: info.name,
+              matchNames: inferMatchNames(info.email, info.name),
+              canViewInfo: false,
+            },
+          });
           setStatus('signed_out');
           setUser(null);
           setErrorMessage(`Signed in as ${info.email}, but this account is not on the allowlist.`);
@@ -287,7 +300,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(nextUser);
         setStatus('signed_in');
         setErrorMessage(null);
+        fireAndForgetAuditLog({
+          eventType: 'auth_google_sign_in_success',
+          status: 'success',
+          message: 'Google sign-in successful.',
+          user: nextUser,
+        });
       } catch (error) {
+        fireAndForgetAuditLog({
+          eventType: 'auth_google_sign_in_error',
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Google sign-in failed.',
+        });
         setStatus('signed_out');
         setUser(null);
         setErrorMessage(error instanceof Error ? error.message : 'Google sign-in failed.');
@@ -322,26 +346,52 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const nameKey = normalizeName(name || '');
     const matchedName = GUEST_COUNTER_NAMES.find(allowed => normalizeName(allowed) === nameKey);
     if (!matchedName) {
+      fireAndForgetAuditLog({
+        eventType: 'auth_guest_sign_in_error',
+        status: 'error',
+        message: 'Invalid guest name provided.',
+        details: { attemptedName: name || '' },
+      });
       setErrorMessage('Guest access is only available for Jacob or Kevin.');
       return;
     }
 
     if (String(password || '') !== GUEST_PASSWORD) {
+      fireAndForgetAuditLog({
+        eventType: 'auth_guest_sign_in_error',
+        status: 'error',
+        message: 'Incorrect guest password.',
+        details: { guestName: matchedName },
+      });
       setErrorMessage('Guest password is incorrect.');
       return;
     }
 
-    setUser({
+    const guestUser = {
       email: `guest:${matchedName.toLowerCase()}`,
       displayName: `${matchedName} (Guest)`,
       matchNames: [matchedName],
       canViewInfo: false,
-    });
+    };
+    setUser(guestUser);
     setStatus('signed_in');
     setErrorMessage(null);
+    fireAndForgetAuditLog({
+      eventType: 'auth_guest_sign_in_success',
+      status: 'success',
+      message: 'Guest sign-in successful.',
+      user: guestUser,
+    });
   };
 
   const signOut = () => {
+    const userBeforeSignOut = user;
+    fireAndForgetAuditLog({
+      eventType: 'auth_sign_out',
+      status: 'info',
+      message: 'User signed out.',
+      user: userBeforeSignOut,
+    });
     setUser(null);
     setErrorMessage(null);
     setStatus('signed_out');

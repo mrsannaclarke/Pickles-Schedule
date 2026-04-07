@@ -1,4 +1,5 @@
 import { SCHEDULE_ENDPOINT, type ScheduleEvent } from '@/lib/schedule';
+import { fireAndForgetAuditLog } from '@/lib/audit-log';
 
 type StaffActionUser = {
   email: string;
@@ -33,6 +34,7 @@ type StaffActionResponse = {
   ok?: boolean;
   error?: string;
   message?: string;
+  rowNumber?: number;
   slot?: number;
 };
 
@@ -54,7 +56,12 @@ function buildPayloadBase(event: ScheduleEvent, user: StaffActionUser): StaffAct
   };
 }
 
-async function postStaffAction(payload: SetStaffSlotPayload | CancelMySpotPayload): Promise<StaffActionResult> {
+async function postStaffAction(
+  payload: SetStaffSlotPayload | CancelMySpotPayload,
+  context: { event: ScheduleEvent; user: StaffActionUser }
+): Promise<StaffActionResult> {
+  const eventType = payload.action === 'set_staff_slot' ? 'set_staff_slot' : 'cancel_my_spot';
+
   let response: Response;
   try {
     response = await fetch(SCHEDULE_ENDPOINT, {
@@ -65,6 +72,20 @@ async function postStaffAction(payload: SetStaffSlotPayload | CancelMySpotPayloa
       body: JSON.stringify(payload),
     });
   } catch {
+    fireAndForgetAuditLog({
+      eventType,
+      status: 'error',
+      message: 'Network error while updating staff.',
+      user: context.user,
+      team: context.event.team,
+      dateLabel: context.event.dateLabel ?? '',
+      theme: context.event.theme ?? '',
+      signUpUrl: context.event.signUpUrl ?? '',
+      details:
+        payload.action === 'set_staff_slot'
+          ? { slot: payload.slot, staffName: payload.staffName }
+          : undefined,
+    });
     return { status: 'error', message: 'Network error while updating staff.' };
   }
 
@@ -73,15 +94,62 @@ async function postStaffAction(payload: SetStaffSlotPayload | CancelMySpotPayloa
   try {
     parsed = JSON.parse(raw) as StaffActionResponse;
   } catch {
+    fireAndForgetAuditLog({
+      eventType,
+      status: 'error',
+      message: 'Staff action endpoint returned an invalid response.',
+      user: context.user,
+      team: context.event.team,
+      dateLabel: context.event.dateLabel ?? '',
+      theme: context.event.theme ?? '',
+      signUpUrl: context.event.signUpUrl ?? '',
+      details:
+        payload.action === 'set_staff_slot'
+          ? { slot: payload.slot, staffName: payload.staffName, httpStatus: response.status }
+          : { httpStatus: response.status },
+    });
     return { status: 'error', message: 'Staff action endpoint returned an invalid response.' };
   }
 
   if (!response.ok || parsed.error || !parsed.ok) {
+    fireAndForgetAuditLog({
+      eventType,
+      status: 'error',
+      message: parsed.error || parsed.message || `Staff update failed (HTTP ${response.status}).`,
+      user: context.user,
+      team: context.event.team,
+      dateLabel: context.event.dateLabel ?? '',
+      theme: context.event.theme ?? '',
+      signUpUrl: context.event.signUpUrl ?? '',
+      rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+      slot: typeof parsed.slot === 'number' ? parsed.slot : payload.action === 'set_staff_slot' ? payload.slot : undefined,
+      details:
+        payload.action === 'set_staff_slot'
+          ? { staffName: payload.staffName, httpStatus: response.status }
+          : { httpStatus: response.status },
+    });
     return {
       status: 'error',
       message: parsed.error || parsed.message || `Staff update failed (HTTP ${response.status}).`,
     };
   }
+
+  fireAndForgetAuditLog({
+    eventType,
+    status: 'success',
+    message: parsed.message || 'Staff updated successfully.',
+    user: context.user,
+    team: context.event.team,
+    dateLabel: context.event.dateLabel ?? '',
+    theme: context.event.theme ?? '',
+    signUpUrl: context.event.signUpUrl ?? '',
+    rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+    slot: typeof parsed.slot === 'number' ? parsed.slot : payload.action === 'set_staff_slot' ? payload.slot : undefined,
+    details:
+      payload.action === 'set_staff_slot'
+        ? { staffName: payload.staffName, httpStatus: response.status }
+        : { httpStatus: response.status },
+  });
 
   return {
     status: 'success',
@@ -102,7 +170,7 @@ export async function setStaffSlotForEvent(input: {
     slot: input.slot,
     staffName: input.staffName,
   };
-  return postStaffAction(payload);
+  return postStaffAction(payload, { event: input.event, user: input.user });
 }
 
 export async function cancelMySpotForEvent(input: {
@@ -113,5 +181,5 @@ export async function cancelMySpotForEvent(input: {
     ...buildPayloadBase(input.event, input.user),
     action: 'cancel_my_spot',
   };
-  return postStaffAction(payload);
+  return postStaffAction(payload, { event: input.event, user: input.user });
 }

@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Platform } from 'react-native';
 
+import { fireAndForgetAuditLog } from '@/lib/audit-log';
 import { SCHEDULE_ENDPOINT, type ScheduleEvent } from '@/lib/schedule';
 
 type UploadUser = {
@@ -44,6 +45,7 @@ type DeletePayload = {
 type UploadResponse = {
   ok?: boolean;
   error?: string;
+  rowNumber?: number;
   imageUrl?: string;
   slot?: number;
   message?: string;
@@ -418,6 +420,17 @@ export async function pickAndUploadEventArt(input: {
       body: JSON.stringify(payload),
     });
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'upload_art',
+      status: 'error',
+      message: 'Network error while uploading art.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      details: { fileName: selection.fileName, mimeType: selection.mimeType },
+    });
     return { status: 'error', message: 'Network error while uploading art.' };
   }
 
@@ -426,15 +439,58 @@ export async function pickAndUploadEventArt(input: {
   try {
     parsed = JSON.parse(raw) as UploadResponse;
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'upload_art',
+      status: 'error',
+      message: 'Upload endpoint returned an invalid response.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      details: { httpStatus: response.status },
+    });
     return { status: 'error', message: 'Upload endpoint returned an invalid response.' };
   }
 
   if (!response.ok || parsed.error || !parsed.ok || !parsed.imageUrl) {
+    fireAndForgetAuditLog({
+      eventType: 'upload_art',
+      status: 'error',
+      message: parsed.error || `Upload failed (HTTP ${response.status}).`,
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+      slot: typeof parsed.slot === 'number' ? parsed.slot : undefined,
+      details: { httpStatus: response.status },
+    });
     return {
       status: 'error',
       message: parsed.error || `Upload failed (HTTP ${response.status}).`,
     };
   }
+
+  fireAndForgetAuditLog({
+    eventType: 'upload_art',
+    status: 'success',
+    message: parsed.message || 'Art uploaded successfully.',
+    user: input.user,
+    team: input.event.team,
+    dateLabel: input.event.dateLabel ?? '',
+    theme: input.event.theme ?? '',
+    signUpUrl: input.event.signUpUrl ?? '',
+    rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+    slot: typeof parsed.slot === 'number' ? parsed.slot : undefined,
+    details: {
+      imageUrl: parsed.imageUrl,
+      httpStatus: response.status,
+      fileName: selection.fileName,
+      mimeType: selection.mimeType,
+    },
+  });
 
   return {
     status: 'success',
@@ -474,6 +530,17 @@ export async function deleteEventArt(input: {
       body: JSON.stringify(payload),
     });
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'delete_art',
+      status: 'error',
+      message: 'Network error while deleting art.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      slot: input.slot,
+    });
     return { status: 'error', message: 'Network error while deleting art.' };
   }
 
@@ -482,15 +549,54 @@ export async function deleteEventArt(input: {
   try {
     parsed = JSON.parse(raw) as UploadResponse;
   } catch {
+    fireAndForgetAuditLog({
+      eventType: 'delete_art',
+      status: 'error',
+      message: 'Delete endpoint returned an invalid response.',
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      slot: input.slot,
+      details: { httpStatus: response.status },
+    });
     return { status: 'error', message: 'Delete endpoint returned an invalid response.' };
   }
 
   if (!response.ok || parsed.error || !parsed.ok) {
+    fireAndForgetAuditLog({
+      eventType: 'delete_art',
+      status: 'error',
+      message: parsed.error || parsed.message || ('Delete failed (HTTP ' + response.status + ').'),
+      user: input.user,
+      team: input.event.team,
+      dateLabel: input.event.dateLabel ?? '',
+      theme: input.event.theme ?? '',
+      signUpUrl: input.event.signUpUrl ?? '',
+      rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+      slot: typeof parsed.slot === 'number' ? parsed.slot : input.slot,
+      details: { httpStatus: response.status },
+    });
     return {
       status: 'error',
       message: parsed.error || parsed.message || ('Delete failed (HTTP ' + response.status + ').'),
     };
   }
+
+  fireAndForgetAuditLog({
+    eventType: 'delete_art',
+    status: 'success',
+    message: parsed.message || 'Image deleted successfully.',
+    user: input.user,
+    team: input.event.team,
+    dateLabel: input.event.dateLabel ?? '',
+    theme: input.event.theme ?? '',
+    signUpUrl: input.event.signUpUrl ?? '',
+    rowNumber: typeof parsed.rowNumber === 'number' ? parsed.rowNumber : undefined,
+    slot: typeof parsed.slot === 'number' ? parsed.slot : input.slot,
+    details: { httpStatus: response.status },
+  });
 
   return {
     status: 'success',
