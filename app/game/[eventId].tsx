@@ -13,6 +13,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteEventArt, pickAndUploadEventArt } from '@/lib/art-upload';
 import { useAuth } from '@/lib/auth';
@@ -106,6 +107,7 @@ function buildGoogleCalendarUrl(event: ScheduleEvent, staffNames: string[]): str
 export default function GameDetailsScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { data, isLoading, isRefreshing, errorMessage, loadSchedule } = useScheduleData();
   const params = useLocalSearchParams<{ eventId?: string; team?: string; theme?: string; dateLabel?: string }>();
 
@@ -614,7 +616,14 @@ export default function GameDetailsScreen() {
         ) : null}
       </ScrollView>
 
-      <View style={styles.bottomTabBar}>
+      <View
+        style={[
+          styles.bottomTabBar,
+          {
+            paddingTop: 8,
+            paddingBottom: 10 + insets.bottom,
+          },
+        ]}>
         <Pressable style={styles.bottomTabButton} onPress={() => router.replace('/(tabs)')}>
           <Ionicons name="flash-outline" size={20} color="#e0e8ee" />
           <Text style={styles.bottomTabLabel}>Next Up</Text>

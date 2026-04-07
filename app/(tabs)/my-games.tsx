@@ -231,6 +231,24 @@ export default function MyGamesScreen() {
           <EmptyStateCard title="No games for this selection" subtitle="Try another name from the dropdown or check back later." />
         ) : null}
 
+        {!isLoading && !errorMessage
+          ? groups.map(group => (
+              <View key={group.label} style={styles.section}>
+                <Text style={styles.sectionTitle}>{group.label}</Text>
+                {group.events.map(event => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    isUploading={uploadingEventId === event.id}
+                    onOpenUrl={openUrl}
+                    onUploadArt={uploadArt}
+                    onOpenDetails={openGameDetails}
+                  />
+                ))}
+              </View>
+            ))
+          : null}
+
         {!isLoading && !errorMessage && unconfirmedGroups.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.unconfirmedHeader}>Unconfirmed</Text>
@@ -251,24 +269,6 @@ export default function MyGamesScreen() {
             ))}
           </View>
         ) : null}
-
-        {!isLoading && !errorMessage
-          ? groups.map(group => (
-              <View key={group.label} style={styles.section}>
-                <Text style={styles.sectionTitle}>{group.label}</Text>
-                {group.events.map(event => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    isUploading={uploadingEventId === event.id}
-                    onOpenUrl={openUrl}
-                    onUploadArt={uploadArt}
-                    onOpenDetails={openGameDetails}
-                  />
-                ))}
-              </View>
-            ))
-          : null}
       </ScrollView>
     </View>
   );

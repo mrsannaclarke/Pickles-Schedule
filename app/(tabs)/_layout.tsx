@@ -2,11 +2,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/lib/auth';
 
 export default function TabLayout() {
   const auth = useAuth();
+  const insets = useSafeAreaInsets();
   const [guestFirstName, setGuestFirstName] = useState('');
   const [guestPassword, setGuestPassword] = useState('');
 
@@ -71,6 +73,9 @@ export default function TabLayout() {
         ),
         tabBarStyle: {
           backgroundColor: '#25292e',
+          height: 62 + insets.bottom,
+          paddingTop: 6,
+          paddingBottom: 8 + insets.bottom,
         },
       }}>
       <Tabs.Screen
