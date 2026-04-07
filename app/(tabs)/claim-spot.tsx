@@ -66,6 +66,10 @@ export default function ClaimSpotScreen() {
   const [optingOutEventId, setOptingOutEventId] = useState<string | null>(null);
   const [adminClaimName, setAdminClaimName] = useState('');
   const canOptOutGames = canManageGameOptOut(user);
+  const activeClaimName = useMemo(() => {
+    if (!user) return '';
+    return deriveClaimName(user, adminClaimName);
+  }, [adminClaimName, user]);
 
   const adminClaimOptions = useMemo(() => uniqueStaffNames(data.all), [data.all]);
 
@@ -254,6 +258,7 @@ export default function ClaimSpotScreen() {
               const staff = eventStaffing(event);
               const open = eventClaimableOpenSlots(event);
               const alreadyClaimed = staff.some(name => userKeys.includes(normalizeName(name)));
+              const claimRule = activeClaimName ? validateClaimRule(event, activeClaimName) : { ok: true as const };
 
               return (
                 <EventCard
@@ -267,6 +272,7 @@ export default function ClaimSpotScreen() {
                   canOptOut={canOptOutGames}
                   isOptingOut={optingOutEventId === event.id}
                   onOptOut={optOutGame}
+                  claimBlockedMessage={!claimRule.ok ? claimRule.message || null : null}
                   onOpenDetails={openGameDetails}
                 />
               );
@@ -287,6 +293,7 @@ function EventCard({
   canOptOut,
   isOptingOut,
   onOptOut,
+  claimBlockedMessage,
   onOpenDetails,
 }: {
   event: ScheduleEvent;
@@ -298,6 +305,7 @@ function EventCard({
   canOptOut: boolean;
   isOptingOut: boolean;
   onOptOut: (event: ScheduleEvent) => void;
+  claimBlockedMessage: string | null;
   onOpenDetails: (event: ScheduleEvent) => void;
 }) {
   const teamMeta = TEAM_META[event.team];
@@ -358,14 +366,26 @@ function EventCard({
 
       <View style={styles.actionRow}>
         <Pressable
-          disabled={openSlots < 1 || alreadyClaimed || isClaiming}
-          style={[styles.claimButton, styles.actionButton, openSlots < 1 || alreadyClaimed || isClaiming ? styles.claimButtonDisabled : null]}
+          disabled={openSlots < 1 || alreadyClaimed || isClaiming || Boolean(claimBlockedMessage)}
+          style={[
+            styles.claimButton,
+            styles.actionButton,
+            openSlots < 1 || alreadyClaimed || isClaiming || claimBlockedMessage ? styles.claimButtonDisabled : null,
+          ]}
           onPress={() => {
             onClaim(event);
           }}>
           <Ionicons name="add-circle" size={18} color="#f5fff8" />
           <Text style={styles.claimButtonText}>
-            {isClaiming ? 'Signing Up...' : alreadyClaimed ? 'Already Signed Up' : openSlots < 1 ? 'Full' : 'Sign Up'}
+            {isClaiming
+              ? 'Signing Up...'
+              : alreadyClaimed
+              ? 'Already Signed Up'
+              : claimBlockedMessage
+              ? 'Unavailable'
+              : openSlots < 1
+              ? 'Full'
+              : 'Sign Up'}
           </Text>
         </Pressable>
 
@@ -381,6 +401,7 @@ function EventCard({
           </Pressable>
         ) : null}
       </View>
+      {claimBlockedMessage ? <Text style={styles.claimBlockedText}>{claimBlockedMessage}</Text> : null}
     </Pressable>
   );
 }
@@ -481,6 +502,12 @@ const styles = StyleSheet.create({
     color: '#ffd88a',
     fontWeight: '700',
     marginTop: 2,
+  },
+  claimBlockedText: {
+    marginTop: 6,
+    color: '#ffd0d0',
+    fontSize: 12,
+    lineHeight: 16,
   },
   actionRow: {
     flexDirection: 'row',
