@@ -1,5 +1,4 @@
-import { Alert, Platform } from 'react-native';
-
+import { confirmAction } from '@/lib/notify';
 import { SCHEDULE_ENDPOINT, type ScheduleEvent } from '@/lib/schedule';
 
 type OptOutUser = {
@@ -59,22 +58,12 @@ export function canManageGameOptOut(user: OptOutUser | null | undefined): boolea
 
 export function confirmGameOptOut(theme: string): Promise<boolean> {
   const themeLabel = theme.trim() || 'this game';
-
-  if (Platform.OS === 'web') {
-    const askConfirm = (globalThis as any).confirm;
-    if (typeof askConfirm !== 'function') return Promise.resolve(true);
-    return Promise.resolve(askConfirm(`Opt out "${themeLabel}" for everyone? This overwrites staffing to Null.`));
-  }
-
-  return new Promise(resolve => {
-    Alert.alert(
-      'Opt Out Game',
-      `Opt out "${themeLabel}" for everyone?\n\nThis overwrites staffing to Null.`,
-      [
-        { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-        { text: 'Opt Out', style: 'destructive', onPress: () => resolve(true) },
-      ]
-    );
+  return confirmAction({
+    title: 'Team Opt-Out',
+    message: `Opt out "${themeLabel}" for everyone?\n\nThis will set staffing slots to Null and pause form generation for this game.`,
+    confirmLabel: 'Opt Out',
+    cancelLabel: 'Keep Game',
+    destructive: true,
   });
 }
 

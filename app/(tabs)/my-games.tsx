@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { pickAndUploadEventArt } from '@/lib/art-upload';
 import { useAuth } from '@/lib/auth';
+import { EmptyStateCard, ErrorStateCard, LoadingStateCard } from '@/lib/fancy-feedback';
 import { notify } from '@/lib/notify';
 import {
   filterEventsByAnyTattooer,
@@ -13,6 +14,7 @@ import {
   formatEventDate,
   hasMinimumPublishedStaff,
   TEAM_META,
+  toThumbnailUrl,
   type ScheduleEvent,
   uniqueStaffNames,
 } from '@/lib/schedule';
@@ -220,10 +222,10 @@ export default function MyGamesScreen() {
           )}
         </View>
 
-        {isLoading ? <Text style={styles.infoText}>Loading schedule...</Text> : null}
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {isLoading ? <LoadingStateCard title="Loading My Games" subtitle="Matching games to the selected artist..." /> : null}
+        {errorMessage ? <ErrorStateCard message={errorMessage} onRetry={() => void loadSchedule(true)} /> : null}
         {!isLoading && !errorMessage && filteredGames.length === 0 ? (
-          <Text style={styles.infoText}>No assigned upcoming games found for this selection.</Text>
+          <EmptyStateCard title="No games for this selection" subtitle="Try another name from the dropdown or check back later." />
         ) : null}
 
         {!isLoading && !errorMessage
@@ -277,6 +279,7 @@ function EventCard({
         <View style={styles.photoStrip}>
           {photoUrls.map((url, index) => {
             const slotNumber = index + 1;
+            const thumbUrl = toThumbnailUrl(url, 420);
             return (
               <View key={url + String(index)} style={styles.photoThumbWrap}>
                 <Pressable
@@ -289,14 +292,16 @@ function EventCard({
                   <View style={styles.photoThumbFrame}>
                     {Platform.OS === 'web' ? (
                       <img
-                        src={url}
+                        src={thumbUrl}
                         alt={`Photo ${slotNumber}`}
+                        loading="lazy"
+                        decoding="async"
                         crossOrigin="anonymous"
                         referrerPolicy="no-referrer"
                         style={WEB_THUMB_IMAGE_STYLE as any}
                       />
                     ) : (
-                      <Image source={{ uri: url }} style={styles.photoThumb} resizeMode="cover" />
+                      <Image source={{ uri: thumbUrl }} style={styles.photoThumb} resizeMode="cover" />
                     )}
                   </View>
                   <Text style={styles.photoThumbLabel}>{`Photo ${slotNumber}`}</Text>

@@ -214,13 +214,14 @@ function chooseUploadSourceWeb(): UploadSource | null {
 
   const answer = window.prompt(
     [
+      'Art Upload Station',
       'Choose image source:',
       '1) Choose from Drive folder',
       '2) Upload from camera roll',
       '3) Take photo',
       '4) Upload file',
       '',
-      'Enter 1, 2, 3, or 4',
+      'Enter 1, 2, 3, or 4.',
     ].join('\n'),
     '2'
   );

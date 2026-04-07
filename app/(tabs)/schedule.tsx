@@ -6,8 +6,9 @@ import { useRouter } from 'expo-router';
 
 import { pickAndUploadEventArt } from '@/lib/art-upload';
 import { useAuth } from '@/lib/auth';
+import { EmptyStateCard, ErrorStateCard, LoadingStateCard } from '@/lib/fancy-feedback';
 import { notify } from '@/lib/notify';
-import { TEAM_META, formatEventDate, hasMinimumPublishedStaff, type ScheduleEvent } from '@/lib/schedule';
+import { TEAM_META, formatEventDate, hasMinimumPublishedStaff, toThumbnailUrl, type ScheduleEvent } from '@/lib/schedule';
 import { ColoredStaffNamesText } from '@/lib/staff-colors';
 import { useScheduleData } from '@/lib/useScheduleData';
 
@@ -108,11 +109,11 @@ export default function FullScheduleScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => loadSchedule(true)} />}>
-        {isLoading ? <Text style={styles.infoText}>Loading schedule...</Text> : null}
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {isLoading ? <LoadingStateCard title="Loading Schedule" subtitle="Sorting games by date..." /> : null}
+        {errorMessage ? <ErrorStateCard message={errorMessage} onRetry={() => void loadSchedule(true)} /> : null}
 
         {!isLoading && !errorMessage && groups.length === 0 ? (
-          <Text style={styles.infoText}>No upcoming staffed games.</Text>
+          <EmptyStateCard title="No upcoming staffed games" subtitle="As games get staffed, they’ll appear here in date order." />
         ) : null}
 
         {!isLoading && !errorMessage
@@ -166,6 +167,7 @@ function EventCard({
         <View style={styles.photoStrip}>
           {photoUrls.map((url, index) => {
             const slotNumber = index + 1;
+            const thumbUrl = toThumbnailUrl(url, 420);
             return (
               <View key={url + String(index)} style={styles.photoThumbWrap}>
                 <Pressable
@@ -178,14 +180,16 @@ function EventCard({
                   <View style={styles.photoThumbFrame}>
                     {Platform.OS === 'web' ? (
                       <img
-                        src={url}
+                        src={thumbUrl}
                         alt={`Photo ${slotNumber}`}
+                        loading="lazy"
+                        decoding="async"
                         crossOrigin="anonymous"
                         referrerPolicy="no-referrer"
                         style={WEB_THUMB_IMAGE_STYLE as any}
                       />
                     ) : (
-                      <Image source={{ uri: url }} style={styles.photoThumb} resizeMode="cover" />
+                      <Image source={{ uri: thumbUrl }} style={styles.photoThumb} resizeMode="cover" />
                     )}
                   </View>
                   <Text style={styles.photoThumbLabel}>{`Photo ${slotNumber}`}</Text>

@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 
 import { claimEventSpot } from '@/lib/claim-spot';
 import { useAuth } from '@/lib/auth';
+import { EmptyStateCard, ErrorStateCard, LoadingStateCard } from '@/lib/fancy-feedback';
 import { canManageGameOptOut, confirmGameOptOut, optOutGameForEveryone } from '@/lib/game-opt-out';
 import { notify } from '@/lib/notify';
 import {
@@ -15,6 +16,7 @@ import {
   eventStaffing,
   formatEventDate,
   TEAM_META,
+  toThumbnailUrl,
   type ScheduleEvent,
   uniqueStaffNames,
 } from '@/lib/schedule';
@@ -218,11 +220,11 @@ export default function ClaimSpotScreen() {
           </View>
         ) : null}
 
-        {isLoading ? <Text style={styles.infoText}>Loading schedule...</Text> : null}
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {isLoading ? <LoadingStateCard title="Loading Sign Up" subtitle="Finding games with open slots..." /> : null}
+        {errorMessage ? <ErrorStateCard message={errorMessage} onRetry={() => void loadSchedule(true)} /> : null}
 
         {!isLoading && !errorMessage && claimableGames.length === 0 ? (
-          <Text style={styles.infoText}>No games currently have open spots.</Text>
+          <EmptyStateCard title="No open spots right now" subtitle="When a game has claimable slots, it’ll show up here." />
         ) : null}
 
         {!isLoading && !errorMessage
@@ -288,17 +290,28 @@ function EventCard({
       }}>
       {photoUrls.length > 0 ? (
         <View style={styles.photoStrip}>
-          {photoUrls.map((url, index) => (
-            <View key={url + String(index)} style={styles.photoThumbWrap}>
-              <View style={styles.photoThumbFrame}>
-                {Platform.OS === 'web' ? (
-                  <img src={url} alt={`Photo ${index + 1}`} crossOrigin="anonymous" referrerPolicy="no-referrer" style={WEB_THUMB_IMAGE_STYLE as any} />
-                ) : (
-                  <Image source={{ uri: url }} style={styles.photoThumb} resizeMode="cover" />
-                )}
+          {photoUrls.map((url, index) => {
+            const thumbUrl = toThumbnailUrl(url, 420);
+            return (
+              <View key={url + String(index)} style={styles.photoThumbWrap}>
+                <View style={styles.photoThumbFrame}>
+                  {Platform.OS === 'web' ? (
+                    <img
+                      src={thumbUrl}
+                      alt={`Photo ${index + 1}`}
+                      loading="lazy"
+                      decoding="async"
+                      crossOrigin="anonymous"
+                      referrerPolicy="no-referrer"
+                      style={WEB_THUMB_IMAGE_STYLE as any}
+                    />
+                  ) : (
+                    <Image source={{ uri: thumbUrl }} style={styles.photoThumb} resizeMode="cover" />
+                  )}
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       ) : null}
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   Image,
   Linking,
   Platform,
@@ -19,9 +18,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { deleteEventArt, pickAndUploadEventArt } from '@/lib/art-upload';
 import { useAuth } from '@/lib/auth';
 import { claimEventSpot } from '@/lib/claim-spot';
+import { EmptyStateCard, ErrorStateCard, LoadingStateCard } from '@/lib/fancy-feedback';
 import { canManageGameOptOut, confirmGameOptOut, optOutGameForEveryone } from '@/lib/game-opt-out';
-import { notify } from '@/lib/notify';
-import { eventStaffing, formatEventDate, TEAM_META, type ScheduleEvent, uniqueStaffNames } from '@/lib/schedule';
+import { confirmAction, notify } from '@/lib/notify';
+import { eventStaffing, formatEventDate, TEAM_META, toThumbnailUrl, type ScheduleEvent, uniqueStaffNames } from '@/lib/schedule';
 import { cancelMySpotForEvent, setStaffSlotForEvent } from '@/lib/staff-actions';
 import { ColoredStaffNamesText } from '@/lib/staff-colors';
 import { useScheduleData } from '@/lib/useScheduleData';
@@ -324,7 +324,7 @@ export default function GameDetailsScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.errorText}>Game not found.</Text>
+          <EmptyStateCard title="Game not found" subtitle="This card may have moved or no longer matches the current schedule." />
         </View>
       </View>
     );
@@ -335,8 +335,8 @@ export default function GameDetailsScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={() => loadSchedule(true)} />}>
-        {isLoading ? <Text style={styles.infoText}>Loading game...</Text> : null}
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {isLoading ? <LoadingStateCard title="Loading Game Details" subtitle="Pulling latest staffing and photos..." /> : null}
+        {errorMessage ? <ErrorStateCard message={errorMessage} onRetry={() => void loadSchedule(true)} /> : null}
 
         {event ? (
           <View style={[styles.card, { borderColor: TEAM_META[event.team].tint, backgroundColor: TEAM_META[event.team].cardBackground }]}>
@@ -353,6 +353,7 @@ export default function GameDetailsScreen() {
             <View style={styles.photoStrip}>
               {[0, 1, 2].map(index => {
                 const url = photoUrls[index] || '';
+                const thumbUrl = url ? toThumbnailUrl(url, 640) : '';
                 const openUrlForImage = photoOpenUrls[index] || url;
                 const slot = index + 1;
                 const imageKey = `${event.id}:${slot}`;
@@ -368,9 +369,17 @@ export default function GameDetailsScreen() {
                             if (openUrlForImage) void openUrl(openUrlForImage);
                           }}>
                           {Platform.OS === 'web' ? (
-                            <img src={url} alt={`Photo ${slot}`} crossOrigin="anonymous" referrerPolicy="no-referrer" style={WEB_THUMB_IMAGE_STYLE as any} />
+                            <img
+                              src={thumbUrl}
+                              alt={`Photo ${slot}`}
+                              loading="lazy"
+                              decoding="async"
+                              crossOrigin="anonymous"
+                              referrerPolicy="no-referrer"
+                              style={WEB_THUMB_IMAGE_STYLE as any}
+                            />
                           ) : (
-                            <Image source={{ uri: url }} style={styles.photoThumb} resizeMode="cover" />
+                            <Image source={{ uri: thumbUrl }} style={styles.photoThumb} resizeMode="cover" />
                           )}
                         </Pressable>
                       ) : (
@@ -383,18 +392,16 @@ export default function GameDetailsScreen() {
                       <Pressable
                         disabled={isDeleting}
                         style={[styles.deleteThumbButton, isDeleting ? styles.disabledButton : null]}
-                        onPress={() => {
-                          const runDelete = () => void deleteArt(slot, imageKey);
-                          if (Platform.OS === 'web') {
-                            const askConfirm = (globalThis as any).confirm;
-                            if (typeof askConfirm === 'function' && !askConfirm('Delete this photo?')) return;
-                            runDelete();
-                            return;
-                          }
-                          Alert.alert('Delete Photo', 'Delete this photo?', [
-                            { text: 'Cancel', style: 'cancel' },
-                            { text: 'Delete', style: 'destructive', onPress: runDelete },
-                          ]);
+                        onPress={async () => {
+                          const confirmed = await confirmAction({
+                            title: 'Delete Photo',
+                            message: 'Remove this photo from the game card?',
+                            confirmLabel: 'Delete',
+                            cancelLabel: 'Keep Photo',
+                            destructive: true,
+                          });
+                          if (!confirmed) return;
+                          void deleteArt(slot, imageKey);
                         }}>
                         <MaterialIcons name={isDeleting ? 'hourglass-empty' : 'delete'} size={14} color="#ffd2d2" />
                       </Pressable>

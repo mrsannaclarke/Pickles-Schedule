@@ -72,6 +72,8 @@ export type ScheduleData = {
 };
 
 const TEAM_KEYS: TeamKey[] = ['pickles', 'bangers', 'cherry_bombs'];
+const WEB_SCHEDULE_CACHE_KEY = 'pickles_schedule_payload_v1';
+const WEB_SCHEDULE_CACHE_TTL_MS = 2 * 60 * 1000;
 
 export const PARTICIPANT_NAMES = [
   'Anna',
@@ -120,6 +122,12 @@ function normalizeDriveImageUrl(url: string): string {
   const fileId = extractDriveFileId(url);
   if (!fileId) return url;
   return `https://lh3.googleusercontent.com/d/${fileId}=w1200`;
+}
+
+function normalizeDriveThumbnailUrl(url: string, width: number): string {
+  const fileId = extractDriveFileId(url);
+  if (!fileId) return url;
+  return `https://lh3.googleusercontent.com/d/${fileId}=w${width}`;
 }
 
 function asImageUrl(candidate: string): string | null {
@@ -210,6 +218,26 @@ export function parseEventDateLabel(label: string, now = new Date()): Date | nul
   }
 
   return date;
+}
+
+export function toThumbnailUrl(url: string, width = 420): string {
+  const cleaned = url.trim();
+  if (!cleaned) return url;
+
+  if (/drive\.google\.com\/(uc|file\/d\/|open\?id=)/i.test(cleaned)) {
+    return normalizeDriveThumbnailUrl(cleaned, width);
+  }
+
+  if (/drive\.usercontent\.google\.com\/download/i.test(cleaned)) {
+    return normalizeDriveThumbnailUrl(cleaned, width);
+  }
+
+  const lh3Match = cleaned.match(/^(https:\/\/lh3\.googleusercontent\.com\/d\/[a-zA-Z0-9_-]+)(?:=w\d+)?$/i);
+  if (lh3Match?.[1]) {
+    return `${lh3Match[1]}=w${width}`;
+  }
+
+  return cleaned;
 }
 
 export function formatEventDate(event: ScheduleEvent): string {
@@ -539,13 +567,41 @@ export function nextUpEvent(events: ScheduleEvent[], now = new Date()): Schedule
   return staffed.length > 0 ? [...staffed].sort(compareEvents)[0] : null;
 }
 
-export async function fetchScheduleData(): Promise<ScheduleData> {
-  const response = await fetch(SCHEDULE_ENDPOINT);
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
+function canUseSessionStorage(): boolean {
+  return typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
+}
 
-  const payload = (await response.json()) as RawScheduleResponse;
+function readWebCachedPayload(): RawScheduleResponse | null {
+  if (!canUseSessionStorage()) return null;
+  try {
+    const raw = window.sessionStorage.getItem(WEB_SCHEDULE_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { cachedAt?: unknown; payload?: unknown };
+    const cachedAt = typeof parsed.cachedAt === 'number' ? parsed.cachedAt : 0;
+    if (!cachedAt || Date.now() - cachedAt > WEB_SCHEDULE_CACHE_TTL_MS) return null;
+    if (!parsed.payload || typeof parsed.payload !== 'object') return null;
+    return parsed.payload as RawScheduleResponse;
+  } catch {
+    return null;
+  }
+}
+
+function writeWebCachedPayload(payload: RawScheduleResponse) {
+  if (!canUseSessionStorage()) return;
+  try {
+    window.sessionStorage.setItem(
+      WEB_SCHEDULE_CACHE_KEY,
+      JSON.stringify({
+        cachedAt: Date.now(),
+        payload,
+      })
+    );
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
+function buildScheduleDataFromPayload(payload: RawScheduleResponse): ScheduleData {
   if (typeof payload.error === 'string' && payload.error.trim()) {
     throw new Error(payload.error);
   }
@@ -564,4 +620,20 @@ export async function fetchScheduleData(): Promise<ScheduleData> {
 
   const all = [...byTeam.pickles, ...byTeam.bangers, ...byTeam.cherry_bombs].sort(compareEvents);
   return { byTeam, all };
+}
+
+export async function fetchScheduleData(): Promise<ScheduleData> {
+  const cachedPayload = readWebCachedPayload();
+  if (cachedPayload) {
+    return buildScheduleDataFromPayload(cachedPayload);
+  }
+
+  const response = await fetch(SCHEDULE_ENDPOINT);
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as RawScheduleResponse;
+  writeWebCachedPayload(payload);
+  return buildScheduleDataFromPayload(payload);
 }
