@@ -9,8 +9,7 @@ const newVendorDir = path.join(assetsDir, 'vendor_modules');
 const webJsDir = path.join(distDir, '_expo', 'static', 'js', 'web');
 const faviconSvgSource = path.join(projectRoot, 'assets', 'images', 'pickle-favicon.svg');
 const faviconSvgTarget = path.join(distDir, 'pickle-favicon.svg');
-const publicFontsSource = path.join(projectRoot, 'public', 'fonts');
-const distFontsTarget = path.join(distDir, 'fonts');
+const publicDir = path.join(projectRoot, 'public');
 
 function replaceInFile(filePath, searchValue, replaceValue) {
   const original = fs.readFileSync(filePath, 'utf8');
@@ -36,6 +35,26 @@ function copyDirRecursive(sourceDir, targetDir) {
   }
 }
 
+function copyPublicToDist(publicRoot, distRoot) {
+  if (!fs.existsSync(publicRoot)) return;
+
+  const entries = fs.readdirSync(publicRoot, { withFileTypes: true });
+  for (const entry of entries) {
+    const sourcePath = path.join(publicRoot, entry.name);
+    const targetPath = path.join(distRoot, entry.name);
+
+    if (entry.isDirectory()) {
+      if (fs.existsSync(targetPath)) {
+        fs.rmSync(targetPath, { recursive: true, force: true });
+      }
+      copyDirRecursive(sourcePath, targetPath);
+      continue;
+    }
+
+    fs.copyFileSync(sourcePath, targetPath);
+  }
+}
+
 function main() {
   if (!fs.existsSync(distDir)) {
     console.log('[post-export-web] dist not found; nothing to patch.');
@@ -47,12 +66,9 @@ function main() {
     console.log('[post-export-web] Copied pickle-favicon.svg into dist root.');
   }
 
-  if (fs.existsSync(publicFontsSource)) {
-    if (fs.existsSync(distFontsTarget)) {
-      fs.rmSync(distFontsTarget, { recursive: true, force: true });
-    }
-    copyDirRecursive(publicFontsSource, distFontsTarget);
-    console.log('[post-export-web] Copied public/fonts into dist/fonts.');
+  if (fs.existsSync(publicDir)) {
+    copyPublicToDist(publicDir, distDir);
+    console.log('[post-export-web] Copied public/* assets into dist root.');
   }
 
   if (fs.existsSync(oldNodeModulesDir)) {
