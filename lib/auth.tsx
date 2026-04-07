@@ -54,6 +54,22 @@ const GUEST_COUNTER_NAMES = ['Jacob', 'Jason', 'Kevin'] as const;
 const AUTH_STORAGE_KEY = 'pickles_schedule_auth_user_v1';
 const DEFAULT_WEB_CLIENT_ID =
   '782128846272-hvq1st144odrrq2vuhdjc6gtlrrsfgbf.apps.googleusercontent.com';
+const DEFAULT_PROD_WEB_REDIRECT_URI = 'https://mrsannaclarke.github.io/Pickles-Schedule';
+
+function resolveWebRedirectUri(): string {
+  const explicit = process.env.EXPO_PUBLIC_GOOGLE_WEB_REDIRECT_URI;
+  if (explicit && explicit.trim()) return explicit.trim();
+
+  if (typeof window !== 'undefined') {
+    const host = String(window.location.hostname || '').toLowerCase();
+    const origin = String(window.location.origin || '').replace(/\/+$/, '');
+
+    if (host === 'localhost' || host === '127.0.0.1') return origin;
+    return `${origin}/Pickles-Schedule`;
+  }
+
+  return DEFAULT_PROD_WEB_REDIRECT_URI;
+}
 
 type AuthUser = {
   email: string;
@@ -192,6 +208,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
   const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
   const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || DEFAULT_WEB_CLIENT_ID;
+  const webRedirectUri = Platform.OS === 'web' ? resolveWebRedirectUri() : undefined;
   const iosClientIdForRequest = iosClientId ?? 'missing-ios-client-id';
   const androidClientIdForRequest = androidClientId ?? 'missing-android-client-id';
   const webClientIdForRequest = webClientId ?? 'missing-web-client-id';
@@ -201,6 +218,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     iosClientId: iosClientIdForRequest,
     androidClientId: androidClientIdForRequest,
     webClientId: webClientIdForRequest,
+    redirectUri: webRedirectUri,
   });
 
   const canSignIn = useMemo(
@@ -224,6 +242,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     if (response.type !== 'success') {
       setStatus('signed_out');
+      if (response.type === 'error') {
+        const maybeError = (response as any)?.error?.message || (response as any)?.params?.error_description;
+        setErrorMessage(maybeError ? String(maybeError) : 'Google sign-in failed.');
+      }
       return;
     }
 
