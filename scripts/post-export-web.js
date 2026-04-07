@@ -9,6 +9,8 @@ const newVendorDir = path.join(assetsDir, 'vendor_modules');
 const webJsDir = path.join(distDir, '_expo', 'static', 'js', 'web');
 const faviconSvgSource = path.join(projectRoot, 'assets', 'images', 'pickle-favicon.svg');
 const faviconSvgTarget = path.join(distDir, 'pickle-favicon.svg');
+const publicFontsSource = path.join(projectRoot, 'public', 'fonts');
+const distFontsTarget = path.join(distDir, 'fonts');
 
 function replaceInFile(filePath, searchValue, replaceValue) {
   const original = fs.readFileSync(filePath, 'utf8');
@@ -43,6 +45,14 @@ function main() {
   if (fs.existsSync(faviconSvgSource)) {
     fs.copyFileSync(faviconSvgSource, faviconSvgTarget);
     console.log('[post-export-web] Copied pickle-favicon.svg into dist root.');
+  }
+
+  if (fs.existsSync(publicFontsSource)) {
+    if (fs.existsSync(distFontsTarget)) {
+      fs.rmSync(distFontsTarget, { recursive: true, force: true });
+    }
+    copyDirRecursive(publicFontsSource, distFontsTarget);
+    console.log('[post-export-web] Copied public/fonts into dist/fonts.');
   }
 
   if (fs.existsSync(oldNodeModulesDir)) {

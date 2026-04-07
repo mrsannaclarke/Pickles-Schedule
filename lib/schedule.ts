@@ -73,6 +73,26 @@ export type ScheduleData = {
 
 const TEAM_KEYS: TeamKey[] = ['pickles', 'bangers', 'cherry_bombs'];
 
+export const PARTICIPANT_NAMES = [
+  'Anna',
+  'Anne',
+  'Agnes',
+  'Drew',
+  'Jacob',
+  'Jake',
+  'Jason',
+  'Jayden',
+  'Jazz',
+  'Kevin',
+  'Lindsay',
+  'Megan',
+  'Shy',
+  'Sienna',
+  'Sisi',
+  'Summer',
+  'Tomma',
+] as const;
+
 function asStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === 'string');
@@ -465,19 +485,29 @@ export function groupEventsByTeam(events: ScheduleEvent[]): Record<TeamKey, Sche
 }
 
 export function uniqueStaffNames(events: ScheduleEvent[]): string[] {
-  const seen = new Map<string, string>();
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+
+  const addName = (name: string) => {
+    const display = normalizeStaffName(name);
+    const normalized = staffNameKey(name);
+    if (!display || !normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    ordered.push(display);
+  };
+
+  for (const name of PARTICIPANT_NAMES) {
+    addName(name);
+  }
 
   for (const event of events) {
     const names = eventStaffing(event);
     for (const name of names) {
-      const display = normalizeStaffName(name);
-      const normalized = staffNameKey(name);
-      if (!display || !normalized) continue;
-      if (!seen.has(normalized)) seen.set(normalized, display);
+      addName(name);
     }
   }
 
-  return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+  return ordered;
 }
 
 export function filterEventsByStaff(events: ScheduleEvent[], staffName: string): ScheduleEvent[] {
