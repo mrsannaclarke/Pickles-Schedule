@@ -18,8 +18,8 @@ function hasFreshCache(now = Date.now()): boolean {
   return now - cachedAt < CACHE_TTL_MS;
 }
 
-async function fetchAndCacheSchedule(): Promise<ScheduleData> {
-  const next = await fetchScheduleData();
+async function fetchAndCacheSchedule(forceNetwork = false): Promise<ScheduleData> {
+  const next = await fetchScheduleData(forceNetwork);
   const filtered = excludePastEvents(next);
   cachedData = filtered;
   cachedAt = Date.now();
@@ -29,13 +29,20 @@ async function fetchAndCacheSchedule(): Promise<ScheduleData> {
 async function loadSharedSchedule(force = false): Promise<ScheduleData> {
   if (!force && hasFreshCache()) return cachedData;
 
+  if (force) {
+    inFlightLoad = fetchAndCacheSchedule(true).finally(() => {
+      inFlightLoad = null;
+    });
+    return inFlightLoad;
+  }
+
   if (!inFlightLoad) {
-    inFlightLoad = fetchAndCacheSchedule().finally(() => {
+    inFlightLoad = fetchAndCacheSchedule(false).finally(() => {
       inFlightLoad = null;
     });
   }
 
-  return inFlightLoad;
+  return inFlightLoad!;
 }
 
 export function useScheduleData() {

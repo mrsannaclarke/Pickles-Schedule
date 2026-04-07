@@ -571,6 +571,15 @@ function canUseSessionStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
 }
 
+function clearWebCachedPayload() {
+  if (!canUseSessionStorage()) return;
+  try {
+    window.sessionStorage.removeItem(WEB_SCHEDULE_CACHE_KEY);
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
 function readWebCachedPayload(): RawScheduleResponse | null {
   if (!canUseSessionStorage()) return null;
   try {
@@ -622,13 +631,21 @@ function buildScheduleDataFromPayload(payload: RawScheduleResponse): ScheduleDat
   return { byTeam, all };
 }
 
-export async function fetchScheduleData(): Promise<ScheduleData> {
-  const cachedPayload = readWebCachedPayload();
+export async function fetchScheduleData(forceNetwork = false): Promise<ScheduleData> {
+  const cachedPayload = !forceNetwork ? readWebCachedPayload() : null;
   if (cachedPayload) {
     return buildScheduleDataFromPayload(cachedPayload);
   }
 
-  const response = await fetch(SCHEDULE_ENDPOINT);
+  if (forceNetwork) {
+    clearWebCachedPayload();
+  }
+
+  const endpointUrl = forceNetwork ? `${SCHEDULE_ENDPOINT}${SCHEDULE_ENDPOINT.includes('?') ? '&' : '?'}_ts=${Date.now()}` : SCHEDULE_ENDPOINT;
+
+  const response = await fetch(endpointUrl, {
+    cache: forceNetwork ? 'no-store' : 'default',
+  });
   if (!response.ok) {
     throw new Error(`Request failed with status ${response.status}`);
   }
