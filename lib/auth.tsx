@@ -18,11 +18,11 @@ type AllowedUser = {
 // If the list is empty, any Google account can sign in.
 const ALLOWED_USERS: AllowedUser[] = [
   { email: 'tattoosbytomma@gmail.com', displayName: 'Tomma', matchNames: ['Tomma'], canViewInfo: false },
-  { email: 'ladyshytattoos@gmail.com', displayName: 'Lady Shy', matchNames: ['Lady Shy', 'Shy'], canViewInfo: false },
+  { email: 'ladyshytattoos@gmail.com', displayName: 'Shy', matchNames: ['Shy', 'Lady Shy'], canViewInfo: false },
   {
     email: 'events.anatomytattoo@gmail.com',
-    displayName: 'Lady Shy',
-    matchNames: ['Lady Shy', 'Shy'],
+    displayName: 'Shy',
+    matchNames: ['Shy', 'Lady Shy'],
     canViewInfo: false,
   },
   { email: 'sketchu2@gmail.com', displayName: 'Summer', matchNames: ['Summer'], canViewInfo: false },
