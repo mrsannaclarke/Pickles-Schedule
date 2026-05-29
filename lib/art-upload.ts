@@ -64,6 +64,8 @@ type UploadSource = 'drive' | 'library' | 'camera' | 'file';
 
 const DRIVE_IMAGES_FOLDER_URL =
   'https://drive.google.com/drive/folders/1J2m41QYj6RuOfGXug04hAiIHHkZVBlov?usp=drive_link';
+const WEB_IMAGE_MAX_DIMENSION = 2000;
+const WEB_IMAGE_JPEG_QUALITY = 0.88;
 
 function extensionFromMime(mimeType: string) {
   const lower = mimeType.toLowerCase();
@@ -127,6 +129,73 @@ function blobToBase64Web(blob: Blob): Promise<string | null> {
   });
 }
 
+function canvasToBlobWeb(canvas: HTMLCanvasElement, mimeType: string, quality: number): Promise<Blob | null> {
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(blob), mimeType, quality);
+  });
+}
+
+function loadImageFromObjectUrlWeb(objectUrl: string): Promise<HTMLImageElement | null> {
+  return new Promise(resolve => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = objectUrl;
+  });
+}
+
+async function normalizeImageFileForUploadWeb(file: File): Promise<{
+  blob: Blob;
+  mimeType: string;
+  fileName: string;
+}> {
+  const originalMimeType = file.type || mimeFromFileName(file.name || '') || 'image/jpeg';
+  const originalName = file.name || `upload.${extensionFromMime(originalMimeType)}`;
+
+  if (
+    typeof document === 'undefined' ||
+    typeof window === 'undefined' ||
+    originalMimeType.toLowerCase() === 'image/gif'
+  ) {
+    return { blob: file, mimeType: originalMimeType, fileName: originalName };
+  }
+
+  const objectUrl = window.URL.createObjectURL(file);
+
+  try {
+    const img = await loadImageFromObjectUrlWeb(objectUrl);
+    if (!img || !img.naturalWidth || !img.naturalHeight) {
+      return { blob: file, mimeType: originalMimeType, fileName: originalName };
+    }
+
+    const scale = Math.min(1, WEB_IMAGE_MAX_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight));
+    const width = Math.max(1, Math.round(img.naturalWidth * scale));
+    const height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+    if (!context) return { blob: file, mimeType: originalMimeType, fileName: originalName };
+
+    context.drawImage(img, 0, 0, width, height);
+
+    const blob = await canvasToBlobWeb(canvas, 'image/jpeg', WEB_IMAGE_JPEG_QUALITY);
+    if (!blob) return { blob: file, mimeType: originalMimeType, fileName: originalName };
+
+    const baseName = originalName.replace(/\.[^.]+$/, '') || 'upload';
+    return {
+      blob,
+      mimeType: 'image/jpeg',
+      fileName: `${baseName}.jpg`,
+    };
+  } catch {
+    return { blob: file, mimeType: originalMimeType, fileName: originalName };
+  } finally {
+    window.URL.revokeObjectURL(objectUrl);
+  }
+}
+
 async function pickImageWeb(input: {
   accept?: string;
   capture?: 'environment';
@@ -151,9 +220,11 @@ async function pickImageWeb(input: {
     document.body.appendChild(inputEl);
 
     let done = false;
+    let cancelTimer: ReturnType<typeof window.setTimeout> | null = null;
 
     const cleanup = () => {
       window.removeEventListener('focus', onFocus);
+      if (cancelTimer) window.clearTimeout(cancelTimer);
       if (inputEl.parentNode) inputEl.parentNode.removeChild(inputEl);
     };
 
@@ -165,44 +236,38 @@ async function pickImageWeb(input: {
     };
 
     const onFocus = () => {
-      setTimeout(() => {
+      if (cancelTimer) window.clearTimeout(cancelTimer);
+      cancelTimer = window.setTimeout(() => {
         if (done) return;
         const file = inputEl.files && inputEl.files[0];
         if (!file) finish(cancelledPickResult());
-      }, 500);
+      }, 4000);
     };
 
     window.addEventListener('focus', onFocus);
+    inputEl.addEventListener('cancel', () => finish(cancelledPickResult()), { once: true });
 
     inputEl.addEventListener(
       'change',
-      () => {
+      async () => {
         const file = inputEl.files && inputEl.files[0];
         if (!file) {
           finish(cancelledPickResult());
           return;
         }
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (typeof reader.result !== 'string') {
-            finish(cancelledPickResult());
-            return;
-          }
-
-          const marker = 'base64,';
-          const idx = reader.result.indexOf(marker);
-          const base64 = idx >= 0 ? reader.result.slice(idx + marker.length) : null;
-
+        try {
+          const normalized = await normalizeImageFileForUploadWeb(file);
+          const base64 = await blobToBase64Web(normalized.blob);
           finish({
             cancelled: false,
             base64,
-            mimeType: file.type || 'image/jpeg',
-            fileName: file.name || `upload.${extensionFromMime(file.type || 'image/jpeg')}`,
+            mimeType: normalized.mimeType,
+            fileName: normalized.fileName,
           });
-        };
-        reader.onerror = () => finish(cancelledPickResult());
-        reader.readAsDataURL(file);
+        } catch {
+          finish(cancelledPickResult());
+        }
       },
       { once: true }
     );
