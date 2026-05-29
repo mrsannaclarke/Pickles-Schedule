@@ -56,9 +56,10 @@ export default function AboutScreen() {
       </View>
 
       <Text style={styles.text}>Signed in: {auth.user?.email ?? 'Unknown'}</Text>
+      <Text style={styles.codeText}>CODE 4587</Text>
 
       <View style={styles.infoBlock}>
-        <Text style={styles.text}>Sign up forms + sign up entry sheets are generated 5 days in advance.</Text>
+        <Text style={styles.text}>Sign up forms + sign up entry sheets are generated 10 days in advance.</Text>
         <Text style={styles.text}>
           Working people can upload one sheet of flash each, and it should appear on the sign up form.
         </Text>
@@ -103,6 +104,12 @@ const styles = StyleSheet.create({
   text: {
     color: '#d2dae0',
     lineHeight: 22,
+    textAlign: 'center',
+  },
+  codeText: {
+    color: '#f2d36b',
+    fontWeight: '800',
+    letterSpacing: 0,
     textAlign: 'center',
   },
   infoBlock: {
