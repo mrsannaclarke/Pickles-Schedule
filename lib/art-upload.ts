@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 import { fireAndForgetAuditLog } from '@/lib/audit-log';
 import { SCHEDULE_ENDPOINT, type ScheduleEvent } from '@/lib/schedule';
@@ -60,10 +60,6 @@ export type DeleteArtResult =
   | { status: 'error'; message: string }
   | { status: 'success'; message: string; slot: number | null };
 
-type UploadSource = 'drive' | 'library' | 'camera' | 'file';
-
-const DRIVE_IMAGES_FOLDER_URL =
-  'https://drive.google.com/drive/folders/1J2m41QYj6RuOfGXug04hAiIHHkZVBlov?usp=drive_link';
 const WEB_IMAGE_MAX_DIMENSION = 2000;
 const WEB_IMAGE_JPEG_QUALITY = 0.88;
 
@@ -96,19 +92,6 @@ async function uriToBase64(uri: string): Promise<string | null> {
 
 function cancelledPickResult() {
   return { cancelled: true, base64: null, mimeType: 'image/jpeg', fileName: 'upload.jpg' };
-}
-
-function extractDriveFileId(value: string): string | null {
-  const filePathMatch = value.match(/\/file\/d\/([a-zA-Z0-9_-]+)/i);
-  if (filePathMatch?.[1]) return filePathMatch[1];
-
-  const queryIdMatch = value.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
-  if (queryIdMatch?.[1]) return queryIdMatch[1];
-
-  const lh3Match = value.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/i);
-  if (lh3Match?.[1]) return lh3Match[1];
-
-  return null;
 }
 
 function blobToBase64Web(blob: Blob): Promise<string | null> {
@@ -276,137 +259,12 @@ async function pickImageWeb(input: {
   });
 }
 
-function chooseUploadSourceWeb(): UploadSource | null {
-  if (typeof window === 'undefined') return null;
-
-  const answer = window.prompt(
-    [
-      'Art Upload Station',
-      'Choose image source:',
-      '1) Choose from Drive folder',
-      '2) Upload from camera roll',
-      '3) Take photo',
-      '4) Upload file',
-      '',
-      'Enter 1, 2, 3, or 4.',
-    ].join('\n'),
-    '2'
-  );
-
-  if (!answer) return null;
-  const normalized = answer.trim().toLowerCase();
-
-  if (normalized === '1') return 'drive';
-  if (normalized === '2') return 'library';
-  if (normalized === '3') return 'camera';
-  if (normalized === '4') return 'file';
-
-  return null;
-}
-
-function chooseUploadSourceNative(): Promise<UploadSource | null> {
-  return new Promise(resolve => {
-    Alert.alert('Upload Art', 'Choose image source', [
-      { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
-      { text: 'Camera Roll', onPress: () => resolve('library') },
-      { text: 'Take Photo', onPress: () => resolve('camera') },
-      { text: 'Upload File', onPress: () => resolve('file') },
-    ]);
-  });
-}
-
-async function pickImageFromDriveLinkWeb(): Promise<{
+async function pickImageNative(): Promise<{
   cancelled: boolean;
   base64: string | null;
   mimeType: string;
   fileName: string;
 }> {
-  if (typeof window === 'undefined') return cancelledPickResult();
-
-  window.open(DRIVE_IMAGES_FOLDER_URL, '_blank', 'noopener,noreferrer');
-
-  const urlInput = window.prompt(
-    [
-      'Paste the image link from Drive (from the Pickles images folder).',
-      'You can paste either:',
-      '- a drive.google.com/file/... link',
-      '- a drive.google.com/uc?... link',
-      '- or an lh3.googleusercontent.com/d/... link',
-    ].join('\n')
-  );
-
-  if (!urlInput) return cancelledPickResult();
-
-  const fileId = extractDriveFileId(urlInput.trim());
-  const fetchUrl = fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w2000` : urlInput.trim();
-
-  let response: Response;
-  try {
-    response = await fetch(fetchUrl);
-  } catch {
-    return cancelledPickResult();
-  }
-
-  if (!response.ok) return cancelledPickResult();
-
-  let blob: Blob;
-  try {
-    blob = await response.blob();
-  } catch {
-    return cancelledPickResult();
-  }
-
-  const base64 = await blobToBase64Web(blob);
-  if (!base64) return cancelledPickResult();
-
-  const mimeType = blob.type || 'image/jpeg';
-  const ext = extensionFromMime(mimeType);
-  const fileName = fileId ? `drive-${fileId}.${ext}` : `drive-image.${ext}`;
-
-  return {
-    cancelled: false,
-    base64,
-    mimeType,
-    fileName,
-  };
-}
-
-async function pickImageNative(source: UploadSource): Promise<{
-  cancelled: boolean;
-  base64: string | null;
-  mimeType: string;
-  fileName: string;
-}> {
-  if (source === 'camera') {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) return cancelledPickResult();
-
-    const picked = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 0.92,
-      base64: true,
-    });
-
-    if (picked.canceled || !picked.assets.length) return cancelledPickResult();
-
-    const asset = picked.assets[0];
-    const mimeType = asset.mimeType ?? 'image/jpeg';
-    const ext = extensionFromMime(mimeType);
-    const fallbackName = `camera.${ext}`;
-    let base64 = asset.base64 ?? null;
-
-    if (!base64 && asset.uri) base64 = await uriToBase64(asset.uri);
-
-    return {
-      cancelled: false,
-      base64,
-      mimeType,
-      fileName: asset.fileName ?? fallbackName,
-    };
-  }
-
-  // 'library' and 'file' both route through image library on native.
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) return cancelledPickResult();
 
@@ -436,17 +294,11 @@ async function pickImageNative(source: UploadSource): Promise<{
 }
 
 async function pickImage() {
-  const source = Platform.OS === 'web' ? chooseUploadSourceWeb() : await chooseUploadSourceNative();
-  if (!source) return cancelledPickResult();
-
   if (Platform.OS === 'web') {
-    if (source === 'drive') return pickImageFromDriveLinkWeb();
-    if (source === 'camera') return pickImageWeb({ accept: 'image/*', capture: 'environment' });
-    if (source === 'file') return pickImageWeb({ accept: 'image/*' });
     return pickImageWeb({ accept: 'image/*' });
   }
 
-  return pickImageNative(source);
+  return pickImageNative();
 }
 
 export async function pickAndUploadEventArt(input: {
