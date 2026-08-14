@@ -1,4 +1,5 @@
 export const SCHEDULE_ENDPOINT =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SCHEDULE_ENDPOINT) ||
   'https://script.google.com/macros/s/AKfycbw8fgHWA_1GLhs1GFUoIlKrzx6crRzZuZNhzje9ojoQThvA_F2SLLHmeh026fhwzqKMFQ/exec';
 
 export type TeamKey = 'pickles' | 'bangers' | 'cherry_bombs';
@@ -641,7 +642,8 @@ export async function fetchScheduleData(forceNetwork = false): Promise<ScheduleD
     clearWebCachedPayload();
   }
 
-  const endpointUrl = forceNetwork ? `${SCHEDULE_ENDPOINT}${SCHEDULE_ENDPOINT.includes('?') ? '&' : '?'}_ts=${Date.now()}` : SCHEDULE_ENDPOINT;
+  const separator = SCHEDULE_ENDPOINT.includes('?') ? '&' : '?';
+  const endpointUrl = `${SCHEDULE_ENDPOINT}${separator}include_past=1${forceNetwork ? `&_ts=${Date.now()}` : ''}`;
 
   const response = await fetch(endpointUrl, {
     cache: forceNetwork ? 'no-store' : 'default',
