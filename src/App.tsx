@@ -134,7 +134,12 @@ function MyGamesPage() {
 function InfoPage() {
   const { user, signOut } = useAuth();
   if (!user?.canViewInfo) return <Navigate to="/" replace />;
-  return <Page title="Info" subtitle="Test-season app configuration.">
+  return <Page title="Info">
+    <nav className="info-team-links" aria-label="Team websites">
+      <a className="info-team-link pickles-link" href="https://www.portlandpicklesbaseball.com" target="_blank" rel="noreferrer">Pickles</a>
+      <a className="info-team-link cherry-link" href="https://www.cherrybombers.com" target="_blank" rel="noreferrer">Cherry Bombs</a>
+      <a className="info-team-link bangers-link" href="https://www.portlandbangers.com" target="_blank" rel="noreferrer">Bangers</a>
+    </nav>
     <section className="info-card"><p>Signed in as <strong>{user?.email}</strong></p><p className="access-code">CODE 4587</p>
       <p>Signup forms and signup entry sheets are generated 10 days in advance. Authorized staff can claim games, update slots, and upload flash.</p>
       <section className="generator-demo" aria-labelledby="generator-demo-title">
@@ -144,9 +149,10 @@ function InfoPage() {
           Your browser does not support embedded video.
         </video>
       </section>
-      <div className="link-row"><a href="https://www.portlandpicklesbaseball.com" target="_blank" rel="noreferrer">Pickles</a><a href="https://www.cherrybombers.com" target="_blank" rel="noreferrer">Cherry Bombs</a><a href="https://www.portlandbangers.com" target="_blank" rel="noreferrer">Bangers</a></div>
-      {user?.canViewInfo ? <NavLink className="button-link" to="/audit">Open audit log</NavLink> : null}
-      <button className="danger" onClick={signOut}><LogOut size={17} /> Sign out</button>
+      <div className="info-actions">
+        {user?.canViewInfo ? <NavLink className="button-link info-action" to="/audit">Open audit log</NavLink> : null}
+        <button className="danger info-action" onClick={signOut}><LogOut size={17} /> Sign out</button>
+      </div>
     </section>
   </Page>;
 }
