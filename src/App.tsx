@@ -1,10 +1,10 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { CalendarDays, Clock3, Info, LogOut, Menu, MinusCircle, PenTool, PlusCircle, RefreshCw, Sparkles, Star, X } from 'lucide-react';
+import { CalendarDays, Clock3, DoorOpen, Info, LogOut, Menu, PartyPopper, PenTool, RefreshCw, Sparkles, Star, X } from 'lucide-react';
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
 import { ScheduleProvider, useSchedule } from './schedule-context';
-import { eventBlockedSlotCount, eventClaimableOpenSlots, eventStaffing, filterEventsByStaff, hasMinimumPublishedStaff, nextUpEvent, uniqueStaffNames, type ScheduleEvent } from '../lib/schedule';
+import { eventBlockedSlotCount, eventClaimableOpenSlots, eventStaffing, filterEventsByStaff, hasMinimumPublishedStaff, nextUpEvent, TEAM_META, uniqueStaffNames, type ScheduleEvent } from '../lib/schedule';
 import { claimSpot, optOutGame } from './api';
 import { canManageGameOptOut, claimRule } from './permissions';
 import { normalizeStaffName, staffNameColor } from './staff-colors';
@@ -88,12 +88,12 @@ function SignupPage() {
       const alreadyClaimed = staff.some((name) => [user?.displayName, ...(user?.matchNames || [])].some((mine) => normalizeStaffName(mine || '') === normalizeStaffName(name)));
       const openSlots = eventClaimableOpenSlots(event);
       const rule = claimRule(event.staffSlots, claimName);
-      return <section className="signup-card" key={event.id}>
+      return <section className="signup-card" key={event.id} style={{ '--team': TEAM_META[event.team].themeColor, '--team-bg': TEAM_META[event.team].cardBackground } as React.CSSProperties}>
         {event.tattooers.length === 1 ? <div className="solo-star" title="Solo artist staffed"><Sparkles size={26} /> Solo artist</div> : null}
         <EventCard event={event} />
         <div className="signup-summary"><strong>{openSlots} open {openSlots === 1 ? 'spot' : 'spots'}</strong>{!rule.ok ? <span>{rule.message}</span> : null}</div>
-        <div className="signup-actions"><button className="primary" disabled={busyId === event.id || alreadyClaimed || !rule.ok} onClick={() => void run(event, 'claim')}><PlusCircle size={18} />{busyId === event.id ? 'Signing Up…' : alreadyClaimed ? 'Already Signed Up' : !rule.ok ? 'Unavailable' : 'Sign Up'}</button>
-        {canManageGameOptOut(user) ? <button className="danger" disabled={busyId === event.id} onClick={() => void run(event, 'optout')}><MinusCircle size={18} /> Opt Out Game</button> : null}</div>
+        <div className="signup-actions"><button className="primary signup-claim" disabled={busyId === event.id || alreadyClaimed || !rule.ok} onClick={() => void run(event, 'claim')}><PartyPopper />{busyId === event.id ? 'Signing Up…' : alreadyClaimed ? 'Already Signed Up' : !rule.ok ? 'Unavailable' : 'Sign Up'}</button>
+        {canManageGameOptOut(user) ? <button className="danger signup-optout" disabled={busyId === event.id} onClick={() => void run(event, 'optout')}><DoorOpen /> Opt Out Game</button> : null}</div>
       </section>;
     })}</div>
   </Page>;

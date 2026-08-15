@@ -449,12 +449,16 @@ a {
 .icon-button:hover { background: #222b27; border-color: #3a454d; }
 .upload-action, .form-action { background: #1a2024; }
 .flash-art { margin-top: 0.9rem; }
-.signup-card { border-radius: 17px; background: #151b1f; border: 1px solid #303a40; overflow: hidden; }
-.signup-card .event-card { border-width: 2px; border-radius: 12px; }
+.signup-card { border-radius: 17px; background: var(--team-bg, #151b1f); border: 3px solid var(--team, #303a40); overflow: hidden; box-shadow: 0 0 0 1px #0008, 4px 5px 0 #0008; }
+.signup-card .event-card { border: 0; border-bottom: 2px solid var(--team); border-radius: 0; }
 .solo-star { display: flex; align-items: center; gap: 0.4rem; padding: 0.7rem 1rem 0; color: #ffd33d; font-weight: 800; }
 .signup-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; padding: 0.8rem 1rem 0; color: #ffd33d; }
 .signup-summary span { color: #ffadb8; font-size: 0.85rem; }
 .signup-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; padding: 0.8rem 1rem 1rem; }
+.signup-actions button { flex: 1 1 145px; min-height: 52px; font-weight: 900; }
+.signup-actions button svg { width: 25px; height: 25px; padding: 3px; border-radius: 50%; stroke-width: 2.2; }
+.signup-claim svg { color: #101417; background: var(--hot-yellow); transform: rotate(-8deg); }
+.signup-optout svg { color: #fff; background: #8f2633; transform: rotate(5deg); }
 .admin-picker { display: grid; gap: 0.4rem; color: #b8c4cb; margin-bottom: 0.8rem; }
 .admin-picker select { border: 1px solid #46515a; border-radius: 9px; background: #161c20; color: #eef4f7; padding: 0.7rem; }
 .photo-grid {
