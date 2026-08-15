@@ -1,7 +1,6 @@
 {
-  "name": "Pickles Schedule",
-  "short_name": "Pickles",
-  "description": "Anatomy Tattoo game staffing and sign-up schedule.",
+  "name": "Pickles Truck Staffing",
+  "short_name": "Pickles Staffing",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -1,4 +1,4 @@
-# Pickles Schedule 2.0
+# Pickles Truck Staffing
 
 Anatomy Tattoo's React + Vite staff app for Pickles, Bangers, and Cherry Bombs games.
 
