@@ -57,8 +57,8 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
   }} style={{ '--team': meta.themeColor, '--card': meta.cardBackground } as React.CSSProperties}>
     <div className="event-card-body">
       <div className="event-card-heading">
-        <div className="event-date"><a className="card-calendar-link" href={eventCalendarUrl(event)} target="_blank" rel="noreferrer" aria-label={`Add ${event.theme || meta.title} to Google Calendar`} title="Add to Google Calendar"><CalendarDays size={22} /></a><strong>{formatEventDate(event)}</strong></div>
         <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div></div>
+        <div className="event-date"><a className="card-calendar-link" href={eventCalendarUrl(event)} target="_blank" rel="noreferrer" aria-label={`Add ${event.theme || meta.title} to Google Calendar`} title="Add to Google Calendar"><CalendarDays size={22} /></a><strong>{formatEventDate(event)}</strong></div>
         <Link className="card-title" to={detailsPath}>{event.theme || 'Untitled Theme'}</Link>
       </div>
       <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
