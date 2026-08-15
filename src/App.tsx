@@ -1,10 +1,13 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { Calendar, House, Info, LogOut, RefreshCw, Star, UserPlus } from 'lucide-react';
+import { Calendar, House, Info, LogOut, MinusCircle, PlusCircle, RefreshCw, Sparkles, Star, UserPlus } from 'lucide-react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
 import { useSchedule } from './schedule-context';
-import { filterEventsByAnyTattooer, hasMinimumPublishedStaff, nextUpEvent } from '../lib/schedule';
+import { eventBlockedSlotCount, eventClaimableOpenSlots, eventStaffing, filterEventsByAnyTattooer, hasMinimumPublishedStaff, nextUpEvent, uniqueStaffNames, type ScheduleEvent } from '../lib/schedule';
+import { claimSpot, optOutGame } from './api';
+import { canManageGameOptOut, claimRule } from './permissions';
+import { normalizeStaffName } from './staff-colors';
 
 const GamePage = lazy(() => import('./pages/GamePage'));
 const AuditPage = lazy(() => import('./pages/AuditPage'));
@@ -48,11 +51,47 @@ function SchedulePage() {
 }
 
 function SignupPage() {
-  const { data, loading, error } = useSchedule();
-  const open = useMemo(() => data.all.filter((event) => event.staffSlots.some((slot) => !slot.trim() || slot.toLowerCase() === 'open')), [data.all]);
+  const { user } = useAuth();
+  const { data, loading, error, refresh } = useSchedule();
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const options = useMemo(() => uniqueStaffNames(data.all), [data.all]);
+  const [adminClaimName, setAdminClaimName] = useState('Tomma');
+  const claimName = user?.canViewInfo ? adminClaimName : user?.matchNames[0] || user?.displayName || '';
+  const open = useMemo(() => data.all.filter((event) => Boolean(event.theme?.trim()) && eventBlockedSlotCount(event) < 2 && eventClaimableOpenSlots(event) > 0), [data.all]);
+
+  const run = async (event: ScheduleEvent, action: 'claim' | 'optout') => {
+    if (!user) return;
+    setBusyId(event.id);
+    try {
+      if (action === 'claim') {
+        const rule = claimRule(event.staffSlots, claimName);
+        if (!rule.ok) throw new Error(rule.message);
+        await claimSpot(event, user, claimName, rule.requestedSlot);
+      } else {
+        if (!window.confirm(`Opt out “${event.theme || 'this game'}” for everyone?`)) return;
+        await optOutGame(event, user);
+      }
+      await refresh();
+    } catch (reason) { window.alert(reason instanceof Error ? reason.message : 'Update failed.'); }
+    finally { setBusyId(null); }
+  };
+
   return <Page title="Sign Up" subtitle="Games that still have an open staffing spot.">
+    {user?.canViewInfo ? <label className="admin-picker"><span>Sign up as</span><select value={adminClaimName} onChange={(event) => setAdminClaimName(event.target.value)}>{options.map((name) => <option key={name}>{name}</option>)}</select></label> : null}
     <Status loading={loading} error={error} empty={!loading && !error && !open.length ? 'No open games found.' : undefined} />
-    <div className="card-list">{open.map((event) => <EventCard event={event} key={event.id} />)}</div>
+    <div className="card-list">{open.map((event) => {
+      const staff = eventStaffing(event);
+      const alreadyClaimed = staff.some((name) => [user?.displayName, ...(user?.matchNames || [])].some((mine) => normalizeStaffName(mine || '') === normalizeStaffName(name)));
+      const openSlots = eventClaimableOpenSlots(event);
+      const rule = claimRule(event.staffSlots, claimName);
+      return <section className="signup-card" key={event.id}>
+        {event.tattooers.length === 1 ? <div className="solo-star" title="Solo artist staffed"><Sparkles size={26} /> Solo artist</div> : null}
+        <EventCard event={event} />
+        <div className="signup-summary"><strong>{openSlots} open {openSlots === 1 ? 'spot' : 'spots'}</strong>{!rule.ok ? <span>{rule.message}</span> : null}</div>
+        <div className="signup-actions"><button className="primary" disabled={busyId === event.id || alreadyClaimed || !rule.ok} onClick={() => void run(event, 'claim')}><PlusCircle size={18} />{busyId === event.id ? 'Signing Up…' : alreadyClaimed ? 'Already Signed Up' : !rule.ok ? 'Unavailable' : 'Sign Up'}</button>
+        {canManageGameOptOut(user) ? <button className="danger" disabled={busyId === event.id} onClick={() => void run(event, 'optout')}><MinusCircle size={18} /> Opt Out Game</button> : null}</div>
+      </section>;
+    })}</div>
   </Page>;
 }
 
@@ -67,6 +106,7 @@ function MyGamesPage() {
 
 function InfoPage() {
   const { user, signOut } = useAuth();
+  if (!user?.canViewInfo) return <Navigate to="/" replace />;
   return <Page title="Info" subtitle="Test-season app configuration.">
     <section className="info-card"><p>Signed in as <strong>{user?.email}</strong></p><p className="access-code">CODE 4587</p>
       <p>This React + Vite build uses the completed season’s sheet as writable test data.</p>
@@ -84,13 +124,14 @@ function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: st
 }
 
 function Shell() {
-  return <div className="app-shell"><Routes>
+  const { user, signOut } = useAuth();
+  return <div className="app-shell"><header className="user-bar"><span><strong>{user?.displayName}</strong><small>{user?.email}</small></span><button onClick={signOut}><LogOut size={16} /> Switch User</button></header><Routes>
     <Route path="/" element={<HomePage />} /><Route path="/schedule" element={<SchedulePage />} /><Route path="/signup" element={<SignupPage />} /><Route path="/my-games" element={<MyGamesPage />} /><Route path="/info" element={<InfoPage />} />
     <Route path="/game/:eventId" element={<Suspense fallback={<Status loading />}><GamePage /></Suspense>} />
     <Route path="/audit" element={<Suspense fallback={<Status loading />}><AuditPage /></Suspense>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes><nav className="bottom-nav">
-    <NavLink to="/"><House /><span>Next Up</span></NavLink><NavLink to="/schedule"><Calendar /><span>Schedule</span></NavLink><NavLink to="/signup"><UserPlus /><span>Sign Up</span></NavLink><NavLink to="/my-games"><Star /><span>My Games</span></NavLink><NavLink to="/info"><Info /><span>Info</span></NavLink>
+    <NavLink to="/"><House /><span>Next Up</span></NavLink><NavLink to="/schedule"><Calendar /><span>Schedule</span></NavLink><NavLink to="/my-games"><Star /><span>My Games</span></NavLink><NavLink to="/signup"><UserPlus /><span>Sign Up</span></NavLink>{user?.canViewInfo ? <NavLink to="/info"><Info /><span>Info</span></NavLink> : null}
   </nav></div>;
 }
 

@@ -1,10 +1,11 @@
 import { memo, useRef, useState } from 'react';
-import { CalendarDays, ClipboardList, ExternalLink, ImageUp, Users } from 'lucide-react';
+import { CalendarDays, ClipboardList, CloudUpload, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatEventDate, TEAM_META, toThumbnailUrl, type ScheduleEvent } from '../lib/schedule';
 import { uploadArt } from './api';
 import { useAuth } from './auth';
 import { useSchedule } from './schedule-context';
+import { ColoredStaffNames } from './staff-colors';
 
 export function Status({ loading, error, empty }: { loading?: boolean; error?: string | null; empty?: string }) {
   if (loading) return <div className="status-card"><span className="spinner" /> Loading schedule…</div>;
@@ -37,13 +38,13 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
     <div className="eyebrow">{meta.title}</div>
     <Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link>
     <div className="event-meta"><CalendarDays size={16} /> {formatEventDate(event)}</div>
-    <div className="event-meta"><Users size={16} /> {(event.staffNames.length ? event.staffNames : event.tattooers).join(', ') || 'Open staffing'}</div>
+    <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
     {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
     <div className="card-actions">
-      <button className="icon-button" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><ImageUp size={19} />{busy ? ' Uploading…' : ' Upload art'}</button>
+      <button className="icon-button upload-action" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><CloudUpload size={19} />{busy ? ' Uploading…' : ' Upload art'}</button>
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={(e) => void onFile(e.target.files?.[0])} />
       {event.responsesUrl ? <a className="icon-button" href={event.responsesUrl} target="_blank" rel="noreferrer"><ClipboardList size={19} /> Responses</a> : null}
-      {event.signUpUrl ? <a className="icon-button" href={event.signUpUrl} target="_blank" rel="noreferrer"><ExternalLink size={19} /> Form</a> : null}
+      {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><FileText size={19} /> Sign Up Form</a> : null}
     </div>
   </article>;
 });
