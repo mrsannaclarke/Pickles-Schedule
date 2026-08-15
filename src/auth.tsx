@@ -51,6 +51,7 @@ function restore(): AuthUser | null {
 
 type AuthValue = {
   user: AuthUser | null;
+  googleAccessToken: string;
   signingIn: boolean;
   error: string | null;
   signIn: () => void;
@@ -59,9 +60,11 @@ type AuthValue = {
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
+const GOOGLE_TOKEN_KEY = 'pickles_google_access_token';
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(() => restore());
+  const [googleAccessToken, setGoogleAccessToken] = useState(() => sessionStorage.getItem(GOOGLE_TOKEN_KEY) || '');
   const [signingIn, setSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +85,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const profile = await response.json() as { email?: string };
         const next = profile.email ? allowedUser(profile.email) : null;
         if (!next) throw new Error(`This Google account is not approved for the Pickles app.`);
+        sessionStorage.setItem(GOOGLE_TOKEN_KEY, access_token);
+        setGoogleAccessToken(access_token);
         persist(next);
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : 'Google sign-in failed.');
@@ -91,7 +96,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   });
 
   const value = useMemo<AuthValue>(() => ({
-    user, signingIn, error,
+    user, googleAccessToken, signingIn, error,
     signIn: () => { setSigningIn(true); setError(null); googleLogin(); },
     signInGuest: (name, password) => {
       const normalized = name.trim().toLowerCase();
@@ -100,8 +105,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       persist({ email: `guest:${normalized}`, displayName, matchNames: [displayName], canViewInfo: false });
       return true;
     },
-    signOut: () => { persist(null); setError(null); },
-  }), [error, googleLogin, persist, signingIn, user]);
+    signOut: () => { sessionStorage.removeItem(GOOGLE_TOKEN_KEY); setGoogleAccessToken(''); persist(null); setError(null); },
+  }), [error, googleAccessToken, googleLogin, persist, signingIn, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

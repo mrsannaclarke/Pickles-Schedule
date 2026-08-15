@@ -459,6 +459,45 @@ a {
 .signup-actions button svg { flex: 0 0 auto; width: 28px; height: 28px; stroke-width: 2.6; }
 .signup-claim svg { color: var(--hot-yellow); }
 .signup-optout svg { color: #ffabb5; }
+.responses-page { display: grid; gap: 1rem; }
+.responses-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.1rem; border: 2px solid var(--team); border-radius: 16px; background: var(--card); }
+.responses-heading h1 { margin: 0.2rem 0; font-family: var(--display-font); font-size: clamp(1.55rem, 6vw, 2.2rem); }
+.responses-heading p { margin: 0; color: #c8d2d8; }
+.live-status { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--hot-green); font-size: 0.76rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; }
+.live-status span { width: 9px; height: 9px; border-radius: 50%; background: var(--hot-green); box-shadow: 0 0 0 5px #6fde8f1c, 0 0 12px #6fde8f; }
+.responses-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1rem; border: 1px solid #3b474e; border-radius: 13px; background: #171d21; }
+.responses-toolbar > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.35rem; }
+.responses-toolbar strong { color: var(--team); font-size: 1.5rem; }
+.responses-toolbar span { color: #dce4e8; font-weight: 800; }
+.responses-toolbar small { flex-basis: 100%; color: #8f9da5; }
+.responses-toolbar button { min-height: 44px; }
+.responses-toolbar button svg { width: 18px; }
+.response-auth-card { display: grid; justify-items: center; gap: 0.7rem; padding: 1.5rem; border: 2px dashed var(--team); border-radius: 16px; background: var(--card); text-align: center; }
+.response-auth-card > svg { width: 42px; height: 42px; color: var(--team); }
+.response-auth-card h2, .response-auth-card p { margin: 0; }
+.response-auth-card p { max-width: 34rem; color: #b5c0c6; }
+.response-list { display: grid; gap: 0.85rem; }
+.response-card { position: relative; display: grid; gap: 0.85rem; padding: 1rem; border: 2px solid color-mix(in srgb, var(--team) 62%, #374149); border-radius: 16px; background: color-mix(in srgb, var(--card) 88%, #111417); box-shadow: 3px 4px 0 #0008; transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+.response-card.response-new { border-color: var(--hot-yellow); box-shadow: 0 0 0 3px #ffd55f20, 4px 5px 0 #0008; animation: response-arrival 420ms ease-out; }
+@keyframes response-arrival { from { opacity: 0; transform: translateY(-8px) rotate(-0.3deg); } to { opacity: 1; transform: none; } }
+.new-response-label { position: absolute; top: -8px; right: 12px; padding: 0.2rem 0.55rem; border-radius: 8px; background: var(--hot-yellow); color: #111417; font-size: 0.67rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; transform: rotate(2deg); }
+.response-card > header { display: flex; align-items: center; gap: 0.75rem; }
+.response-avatar { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border: 2px solid var(--team); border-radius: 50% 46% 52% 45%; background: var(--card); color: var(--team); font-family: var(--display-font); font-size: 1.25rem; font-weight: 900; transform: rotate(-3deg); }
+.response-card h2 { margin: 0; font-family: var(--display-font); font-size: 1.15rem; }
+.response-card time { display: block; margin-top: 0.15rem; color: #96a4ac; font-size: 0.76rem; }
+.response-phone { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.55rem; }
+.response-phone a, .response-phone button { min-height: 48px; border: 1px solid color-mix(in srgb, var(--team) 65%, #40505a); background: #121719; color: #f4f7f8; font-weight: 900; text-decoration: none; }
+.response-phone a { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; border-radius: 10px; }
+.response-phone a svg, .response-phone button svg { width: 20px; height: 20px; color: var(--team); }
+.response-phone button { grid-column: 1 / -1; display: flex; justify-content: space-between; padding-inline: 0.85rem; }
+.selectable-phone { user-select: text; font-size: 1rem; letter-spacing: 0.025em; }
+.response-email { color: var(--electric-blue); overflow-wrap: anywhere; }
+.response-card dl { display: grid; gap: 0; margin: 0; border-top: 1px solid #3a454d; }
+.response-card dl > div { display: grid; gap: 0.25rem; padding: 0.7rem 0; border-bottom: 1px solid #30393f; }
+.response-card dl > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.response-card dt { color: #8f9da5; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
+.response-card dd { margin: 0; color: #eef3f5; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.raw-responses-link { width: 100%; min-height: 50px; margin-top: 0.25rem; }
 .admin-picker { display: grid; gap: 0.4rem; color: #b8c4cb; margin-bottom: 0.8rem; }
 .admin-picker select { border: 1px solid #46515a; border-radius: 9px; background: #161c20; color: #eef4f7; padding: 0.7rem; }
 .photo-grid {

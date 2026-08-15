@@ -2,8 +2,9 @@ import type { AuthUser } from './auth';
 import { SCHEDULE_ENDPOINT } from './config';
 import type { ScheduleEvent } from '../lib/schedule';
 
-type ApiResult = { ok?: boolean; error?: string; message?: string; slot?: number; rowNumber?: number; imageUrl?: string; logs?: AuditEntry[]; total?: number };
+type ApiResult = { ok?: boolean; error?: string; message?: string; slot?: number; rowNumber?: number; imageUrl?: string; logs?: AuditEntry[]; responses?: GameResponse[]; total?: number; fetchedAt?: string; sheetName?: string };
 export type AuditEntry = Record<string, string | number>;
+export type GameResponse = { id: string; rowNumber: number; submittedAt: string; name: string; phone: string; email: string; details: Array<{ label: string; value: string }> };
 
 function eventPayload(event: ScheduleEvent, user: AuthUser) {
   return {
@@ -83,4 +84,9 @@ export async function uploadArt(event: ScheduleEvent, user: AuthUser, file: File
 export async function fetchAuditLog(user: AuthUser) {
   const result = await post({ action: 'get_audit_logs', userEmail: user.email, userDisplayName: user.displayName, userMatchNames: user.matchNames, userCanViewInfo: user.canViewInfo, limit: 200 });
   return { logs: result.logs || [], total: result.total || 0 };
+}
+
+export async function fetchGameResponses(event: ScheduleEvent, user: AuthUser, googleAccessToken: string) {
+  const result = await post({ action: 'get_game_responses', ...eventPayload(event, user), googleAccessToken });
+  return { responses: result.responses || [], total: result.total || 0, fetchedAt: result.fetchedAt || new Date().toISOString(), sheetName: result.sheetName || '' };
 }

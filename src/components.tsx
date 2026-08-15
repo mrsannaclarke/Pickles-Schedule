@@ -71,7 +71,7 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
     <div className="card-actions">
       <button className="icon-button upload-action" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><CloudUpload />{busy ? 'Uploading…' : 'Upload Art'}</button>
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={(e) => void onFile(e.target.files?.[0])} />
-      {event.responsesUrl ? <a className="icon-button responses-action" href={event.responsesUrl} target="_blank" rel="noreferrer"><UsersRound />Responses</a> : null}
+      {event.responsesUrl && user && !user.email.startsWith('guest:') ? <Link className="icon-button responses-action" to={`${detailsPath}/responses`}><UsersRound />Responses</Link> : null}
       {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><ClipboardCheck />Sign Up Form</a> : null}
     </div>
   </article>;

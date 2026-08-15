@@ -11,6 +11,7 @@ import { normalizeStaffName, staffNameColor } from './staff-colors';
 
 const GamePage = lazy(() => import('./pages/GamePage'));
 const AuditPage = lazy(() => import('./pages/AuditPage'));
+const ResponsesPage = lazy(() => import('./pages/ResponsesPage'));
 
 function SignIn() {
   const auth = useAuth();
@@ -169,10 +170,11 @@ function Shell() {
   const { user, signOut } = useAuth();
   const { pathname } = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
-  const currentTitle = pathname.startsWith('/my-games') ? 'My Games' : pathname.startsWith('/signup') ? 'Sign Up' : pathname.startsWith('/schedule') ? 'Schedule' : pathname.startsWith('/info') ? 'Info' : pathname.startsWith('/game/') ? 'Game Details' : 'Next Up';
+  const currentTitle = pathname.endsWith('/responses') ? 'Responses' : pathname.startsWith('/my-games') ? 'My Games' : pathname.startsWith('/signup') ? 'Sign Up' : pathname.startsWith('/schedule') ? 'Schedule' : pathname.startsWith('/info') ? 'Info' : pathname.startsWith('/game/') ? 'Game Details' : 'Next Up';
   return <div className="app-shell"><header className="user-bar"><NavLink className="brand-lockup" to="/" aria-label="Pickles Truck Staffing home"><img src="/pickles-app-logo.png" alt="" /><span><strong>{currentTitle}</strong><small>Pickles Truck Staffing</small></span></NavLink><div className="profile-control"><button className="profile-trigger" aria-expanded={profileOpen} aria-controls="profile-menu" onClick={() => setProfileOpen((open) => !open)}><span><strong>{user?.displayName}</strong><small>Account</small></span>{profileOpen ? <X /> : <Menu />}</button>{profileOpen ? <div className="profile-menu" id="profile-menu"><div><strong>{user?.displayName}</strong><small>{user?.email}</small></div>{user?.canViewInfo ? <NavLink to="/info" onClick={() => setProfileOpen(false)}><Info /> App info</NavLink> : null}<button onClick={signOut}><LogOut /> Switch User</button></div> : null}</div></header><Routes>
     <Route path="/" element={<HomePage />} /><Route path="/schedule" element={<SchedulePage />} /><Route path="/signup" element={<SignupPage />} /><Route path="/my-games" element={<MyGamesPage />} /><Route path="/info" element={<InfoPage />} />
     <Route path="/game/:eventId" element={<Suspense fallback={<Status loading />}><GamePage /></Suspense>} />
+    <Route path="/game/:eventId/responses" element={<Suspense fallback={<Status loading />}><ResponsesPage /></Suspense>} />
     <Route path="/audit" element={<Suspense fallback={<Status loading />}><AuditPage /></Suspense>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes><nav className="bottom-nav">
