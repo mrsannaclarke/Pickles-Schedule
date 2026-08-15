@@ -59,12 +59,12 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
       <div className="event-card-heading">
         <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div></div>
         <div className="event-date"><a className="card-calendar-link" href={eventCalendarUrl(event)} target="_blank" rel="noreferrer" aria-label={`Add ${event.theme || meta.title} to Google Calendar`} title="Add to Google Calendar"><CalendarDays size={22} /></a><strong>{formatEventDate(event)}</strong></div>
-        <Link className="card-title" to={detailsPath}>{event.theme || 'Untitled Theme'}</Link>
+        <Link className="card-title" to={detailsPath}><span>{event.theme || 'Untitled Theme'}</span></Link>
       </div>
       <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
       {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
     </div>
-    {photos.length ? <div className="flash-art"><span>Flash art</span><div className="photo-grid">{photos.map((url, index) =>
+    {photos.length ? <div className="flash-art"><div className="photo-grid">{photos.map((url, index) =>
       <a href={event.artOpenUrls[index] || url} target="_blank" rel="noreferrer" key={`${url}-${index}`}>
         <img src={toThumbnailUrl(url, 480)} alt={`Flash art ${index + 1}`} loading="lazy" decoding="async" />
       </a>)}</div></div> : null}

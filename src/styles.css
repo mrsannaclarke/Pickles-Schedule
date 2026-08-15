@@ -1,5 +1,6 @@
 :root {
   font-family:
+    Montserrat,
     Inter,
     ui-sans-serif,
     system-ui,
@@ -342,10 +343,13 @@ a {
 .material-icons { font-family: "Material Icons"; }
 .material-community-icons { font-family: "Material Community Icons"; }
 .card-title {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.58rem;
   grid-column: 1 / -1;
   color: #f3ead7;
-  font-size: 1.12rem;
+  font-size: 1.25rem;
   font-weight: 800;
   text-decoration: none;
   margin: 0.25rem 0 0;
@@ -353,6 +357,10 @@ a {
   letter-spacing: -0.02em;
   text-align: center;
 }
+.card-title::before, .card-title::after { content: "✦"; flex: 0 0 auto; color: var(--team); font-family: Montserrat, sans-serif; font-size: 0.72em; line-height: 1; text-shadow: 0 0 10px color-mix(in srgb, var(--team) 65%, transparent); }
+.card-title::before { transform: rotate(-10deg); }
+.card-title::after { transform: rotate(10deg); }
+.card-title span { min-width: 0; }
 .event-meta {
   display: flex;
   gap: 0.5rem;
@@ -408,7 +416,6 @@ a {
 .icon-button:hover { background: #222b27; border-color: #3a454d; }
 .upload-action, .form-action { background: #1a2024; }
 .flash-art { margin-top: 0.9rem; }
-.flash-art > span { display: block; margin-bottom: 0.55rem; color: #aeb8bf; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
 .signup-card { border-radius: 17px; background: #151b1f; border: 1px solid #303a40; overflow: hidden; }
 .signup-card .event-card { border-width: 2px; border-radius: 12px; }
 .solo-star { display: flex; align-items: center; gap: 0.4rem; padding: 0.7rem 1rem 0; color: #ffd33d; font-weight: 800; }
@@ -579,7 +586,7 @@ a {
   }
   .event-card-heading { grid-template-columns: minmax(110px, 0.9fr) minmax(0, 1.1fr); gap: 0.7rem; }
   .event-date { font-size: 0.9rem; }
-  .card-title { font-size: 1rem; }
+  .card-title { gap: 0.46rem; font-size: 1.12rem; }
   .icon-button { min-height: 80px; font-size: 0.69rem; padding-inline: 0.15rem; }
   .icon-button svg { width: 27px; height: 27px; }
 }
