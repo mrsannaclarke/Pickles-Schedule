@@ -1,5 +1,5 @@
 import { memo, useRef, useState } from 'react';
-import { CalendarDays, ClipboardCheck, CloudUpload, Info, UsersRound } from 'lucide-react';
+import { CalendarDays, ClipboardCheck, CloudUpload, UsersRound } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatEventDate, TEAM_META, toThumbnailUrl, type ScheduleEvent } from '../lib/schedule';
 import { uploadArt } from './api';
@@ -71,7 +71,6 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={(e) => void onFile(e.target.files?.[0])} />
       {event.responsesUrl ? <a className="icon-button responses-action" href={event.responsesUrl} target="_blank" rel="noreferrer"><UsersRound />Responses</a> : null}
       {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><ClipboardCheck />Sign Up Form</a> : null}
-      <Link className="icon-button details-action" to={detailsPath}><Info />Details</Link>
     </div>
   </article>;
 });

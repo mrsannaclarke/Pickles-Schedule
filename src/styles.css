@@ -342,7 +342,7 @@ a {
 .responses-action svg { color: #65cfff; }
 .form-action svg { color: #ffd55f; }
 .icon-button:hover { background: #222b27; border-color: #3a454d; }
-.upload-action, .form-action, .details-action { background: #1a2024; }
+.upload-action, .form-action { background: #1a2024; }
 .flash-art { margin-top: 0.9rem; }
 .flash-art > span { display: block; margin-bottom: 0.55rem; color: #aeb8bf; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
 .signup-card { border-radius: 17px; background: #151b1f; border: 1px solid #303a40; overflow: hidden; }
