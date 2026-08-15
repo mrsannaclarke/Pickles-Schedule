@@ -198,7 +198,7 @@ a {
   font-family: var(--display-font);
 }
 .page-header p {
-  margin: 0.35rem 0 0;
+  margin: 0;
 }
 .refresh {
   flex-shrink: 0;

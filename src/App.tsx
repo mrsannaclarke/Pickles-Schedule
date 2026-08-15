@@ -148,7 +148,7 @@ function InfoPage() {
 function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: string; subtitle: string }>) {
   const { refresh, refreshing } = useSchedule();
   const pageClass = `page page-${title.toLowerCase().replace(/\s+/g, '-')}`;
-  return <main className={pageClass}><header className="page-header"><div><h1>{title}</h1><p>{subtitle}</p></div><button className="refresh" onClick={() => void refresh()} disabled={refreshing}><RefreshCw size={18} className={refreshing ? 'spin' : ''} /> Refresh</button></header>{children}</main>;
+  return <main className={pageClass}><header className="page-header"><p>{subtitle}</p><button className="refresh" onClick={() => void refresh()} disabled={refreshing}><RefreshCw size={18} className={refreshing ? 'spin' : ''} /> Refresh</button></header>{children}</main>;
 }
 
 function Shell() {
