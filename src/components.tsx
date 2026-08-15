@@ -1,7 +1,7 @@
 import { memo, useRef, useState } from 'react';
 import { CalendarDays, ClipboardCheck, CloudUpload, UsersRound } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { formatEventDate, TEAM_META, toThumbnailUrl, type ScheduleEvent } from '../lib/schedule';
+import { eventCalendarUrl, formatEventDate, teamMapUrl, TEAM_META, toThumbnailUrl, type ScheduleEvent } from '../lib/schedule';
 import { uploadArt } from './api';
 import { useAuth } from './auth';
 import { useSchedule } from './schedule-context';
@@ -15,7 +15,8 @@ const TEAM_ICON_GLYPHS = {
 
 function TeamIcon({ team }: { team: ScheduleEvent['team'] }) {
   const isMaterialIcon = team === 'pickles';
-  return <span className={`team-icon team-icon-${team} ${isMaterialIcon ? 'material-icons' : 'material-community-icons'}`} aria-hidden="true">{TEAM_ICON_GLYPHS[team]}</span>;
+  const meta = TEAM_META[team];
+  return <a className="team-map-link" href={teamMapUrl(team)} target="_blank" rel="noreferrer" aria-label={`Open ${meta.venueName} in Google Maps`} title={`Map: ${meta.venueName}`}><span className={`team-icon team-icon-${team} ${isMaterialIcon ? 'material-icons' : 'material-community-icons'}`} aria-hidden="true">{TEAM_ICON_GLYPHS[team]}</span></a>;
 }
 
 export function Status({ loading, error, empty }: { loading?: boolean; error?: string | null; empty?: string }) {
@@ -56,7 +57,7 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
   }} style={{ '--team': meta.themeColor, '--card': meta.cardBackground } as React.CSSProperties}>
     <div className="event-card-body">
       <div className="event-card-heading">
-        <div className="event-date"><CalendarDays size={22} /><strong>{formatEventDate(event)}</strong></div>
+        <div className="event-date"><a className="card-calendar-link" href={eventCalendarUrl(event)} target="_blank" rel="noreferrer" aria-label={`Add ${event.theme || meta.title} to Google Calendar`} title="Add to Google Calendar"><CalendarDays size={22} /></a><strong>{formatEventDate(event)}</strong></div>
         <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div></div>
         <Link className="card-title" to={detailsPath}>{event.theme || 'Untitled Theme'}</Link>
       </div>

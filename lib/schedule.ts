@@ -13,6 +13,8 @@ export const TEAM_META: Record<
     cardBackground: string;
     iconName: 'sports-baseball' | 'food-hot-dog' | 'bomb';
     iconLibrary: 'material' | 'material-community';
+    venueName: string;
+    venueAddress: string;
   }
 > = {
   pickles: {
@@ -22,6 +24,8 @@ export const TEAM_META: Record<
     cardBackground: '#1a2a1e',
     iconName: 'sports-baseball',
     iconLibrary: 'material',
+    venueName: 'Walker Stadium',
+    venueAddress: '4727 SE 92nd Ave, Portland, OR 97266',
   },
   bangers: {
     title: 'Bangers Soccer',
@@ -30,6 +34,8 @@ export const TEAM_META: Record<
     cardBackground: '#2b211a',
     iconName: 'food-hot-dog',
     iconLibrary: 'material-community',
+    venueName: 'Lents Park',
+    venueAddress: '4808 SE 92nd Ave, Portland, OR 97266',
   },
   cherry_bombs: {
     title: 'Cherry Bombs Soccer',
@@ -38,6 +44,8 @@ export const TEAM_META: Record<
     cardBackground: '#2d1919',
     iconName: 'bomb',
     iconLibrary: 'material-community',
+    venueName: 'Lents Park',
+    venueAddress: '4808 SE 92nd Ave, Portland, OR 97266',
   },
 };
 
@@ -256,6 +264,37 @@ export function formatEventDate(event: ScheduleEvent): string {
       minute: '2-digit',
     })
   );
+}
+
+export function teamMapUrl(team: TeamKey): string {
+  const meta = TEAM_META[team];
+  const query = new URLSearchParams({
+    api: '1',
+    query: `${meta.venueName}, ${meta.venueAddress}`,
+  });
+  return `https://www.google.com/maps/search/?${query.toString()}`;
+}
+
+function googleCalendarDate(date: Date): string {
+  const twoDigits = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}${twoDigits(date.getMonth() + 1)}${twoDigits(date.getDate())}T${twoDigits(date.getHours())}${twoDigits(date.getMinutes())}00`;
+}
+
+export function eventCalendarUrl(event: ScheduleEvent): string {
+  const meta = TEAM_META[event.team];
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `${meta.title} — ${event.theme || 'Game'}`,
+    details: event.raw,
+    location: `${meta.venueName}, ${meta.venueAddress}`,
+  });
+
+  if (event.dateTime) {
+    const end = new Date(event.dateTime.getTime() + 3 * 60 * 60 * 1000);
+    params.set('dates', `${googleCalendarDate(event.dateTime)}/${googleCalendarDate(end)}`);
+  }
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 function normalizeStaffName(name: string): string {

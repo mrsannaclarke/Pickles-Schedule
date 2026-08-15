@@ -6,7 +6,7 @@ import { useAuth } from '../auth';
 import { useSchedule } from '../schedule-context';
 import { canManageGameOptOut } from '../permissions';
 import { ColoredStaffNames } from '../staff-colors';
-import { eventStaffing, formatEventDate, PARTICIPANT_NAMES, TEAM_META, toThumbnailUrl } from '../../lib/schedule';
+import { eventCalendarUrl, eventStaffing, formatEventDate, PARTICIPANT_NAMES, TEAM_META, toThumbnailUrl } from '../../lib/schedule';
 
 export default function GamePage() {
   const { eventId } = useParams(); const { user } = useAuth(); const { data, refresh } = useSchedule();
@@ -16,7 +16,7 @@ export default function GamePage() {
   if (!event || !user) return <main className="page"><Link to="/schedule">← Schedule</Link><div className="status-card">Game not found.</div></main>;
   const meta = TEAM_META[event.team];
   const run = async (key: string, action: () => Promise<unknown>) => { setBusy(key); try { await action(); await refresh(); } catch (e) { alert(e instanceof Error ? e.message : 'Update failed.'); } finally { setBusy(''); } };
-  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`${meta.title} - ${event.theme || ''}`)}&details=${encodeURIComponent(event.raw)}`;
+  const calendarUrl = eventCalendarUrl(event);
   return <main className="page details-page" style={{ '--team': meta.themeColor } as React.CSSProperties}><Link className="back-link" to="/schedule"><ArrowLeft size={17} /> Schedule</Link>
     <header className="details-header"><p className="eyebrow">{meta.title}</p><h1>{event.theme || 'Untitled Theme'}</h1><p>{formatEventDate(event)}</p>{event.opponent ? <p>VS — {event.opponent}</p> : null}</header>
     <section className="panel"><h2>Staffing</h2><ColoredStaffNames prefix="Current" names={eventStaffing(event)} />{[0,1,2].map((index) => <label className="slot" key={index}><span>Slot {index + 1}</span><select value={event.staffSlots[index] || ''} disabled={!!busy || !user.canViewInfo} onChange={(e) => void run(`slot-${index}`, () => setStaffSlot(event, user, index + 1, e.target.value))}><option value="">Open</option><option value="Null">Blocked</option>{names.map((name) => <option key={name}>{name}</option>)}</select></label>)}
