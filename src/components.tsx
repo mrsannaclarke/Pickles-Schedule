@@ -57,7 +57,8 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
     <div className="event-card-body">
       <div className="event-card-heading">
         <div className="event-date"><CalendarDays size={22} /><strong>{formatEventDate(event)}</strong></div>
-        <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div><Link className="card-title" to={detailsPath}>{event.theme || 'Untitled Theme'}</Link></div>
+        <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div></div>
+        <Link className="card-title" to={detailsPath}>{event.theme || 'Untitled Theme'}</Link>
       </div>
       <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
       {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
