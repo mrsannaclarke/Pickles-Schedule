@@ -1,6 +1,6 @@
 import { memo, useRef, useState } from 'react';
-import { CalendarDays, ClipboardList, CloudUpload, FileText, Info } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CalendarDays, ClipboardCheck, CloudUpload, Info, UsersRound } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatEventDate, TEAM_META, toThumbnailUrl, type ScheduleEvent } from '../lib/schedule';
 import { uploadArt } from './api';
 import { useAuth } from './auth';
@@ -28,10 +28,17 @@ export function Status({ loading, error, empty }: { loading?: boolean; error?: s
 export const EventCard = memo(function EventCard({ event }: { event: ScheduleEvent }) {
   const { user } = useAuth();
   const { refresh } = useSchedule();
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const meta = TEAM_META[event.team];
   const photos = event.artUrls.length ? event.artUrls : event.artUrl ? [event.artUrl] : [];
+  const detailsPath = `/game/${encodeURIComponent(event.id)}`;
+
+  const openDetails = (target: EventTarget | null) => {
+    if (target instanceof Element && target.closest('a, button, input, select, textarea')) return;
+    navigate(detailsPath);
+  };
 
   const onFile = async (file?: File) => {
     if (!file || !user) return;
@@ -41,11 +48,16 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
     finally { setBusy(false); if (inputRef.current) inputRef.current.value = ''; }
   };
 
-  return <article className="event-card" style={{ '--team': meta.themeColor, '--card': meta.cardBackground } as React.CSSProperties}>
+  return <article className="event-card" role="link" tabIndex={0} aria-label={`Open details for ${event.theme || meta.title}`} onClick={(clickEvent) => openDetails(clickEvent.target)} onKeyDown={(keyEvent) => {
+    if (keyEvent.target === keyEvent.currentTarget && (keyEvent.key === 'Enter' || keyEvent.key === ' ')) {
+      keyEvent.preventDefault();
+      navigate(detailsPath);
+    }
+  }} style={{ '--team': meta.themeColor, '--card': meta.cardBackground } as React.CSSProperties}>
     <div className="event-card-body">
       <div className="event-card-heading">
         <div className="event-date"><CalendarDays size={22} /><strong>{formatEventDate(event)}</strong></div>
-        <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div><Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link></div>
+        <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div><Link className="card-title" to={detailsPath}>{event.theme || 'Untitled Theme'}</Link></div>
       </div>
       <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
       {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
@@ -57,9 +69,9 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
     <div className="card-actions">
       <button className="icon-button upload-action" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><CloudUpload />{busy ? 'Uploading…' : 'Upload Art'}</button>
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={(e) => void onFile(e.target.files?.[0])} />
-      {event.responsesUrl ? <a className="icon-button" href={event.responsesUrl} target="_blank" rel="noreferrer"><ClipboardList />Responses</a> : null}
-      {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><FileText />Sign Up Form</a> : null}
-      <Link className="icon-button details-action" to={`/game/${encodeURIComponent(event.id)}`}><Info />Details</Link>
+      {event.responsesUrl ? <a className="icon-button responses-action" href={event.responsesUrl} target="_blank" rel="noreferrer"><UsersRound />Responses</a> : null}
+      {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><ClipboardCheck />Sign Up Form</a> : null}
+      <Link className="icon-button details-action" to={detailsPath}><Info />Details</Link>
     </div>
   </article>;
 });
