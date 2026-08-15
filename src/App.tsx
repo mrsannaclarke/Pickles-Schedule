@@ -3,7 +3,7 @@ import { CalendarDays, Clock3, Info, LogOut, Menu, MinusCircle, PenTool, PlusCir
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
-import { useSchedule } from './schedule-context';
+import { ScheduleProvider, useSchedule } from './schedule-context';
 import { eventBlockedSlotCount, eventClaimableOpenSlots, eventStaffing, filterEventsByStaff, hasMinimumPublishedStaff, nextUpEvent, uniqueStaffNames, type ScheduleEvent } from '../lib/schedule';
 import { claimSpot, optOutGame } from './api';
 import { canManageGameOptOut, claimRule } from './permissions';
@@ -178,4 +178,7 @@ function Shell() {
   </nav></div>;
 }
 
-export function App() { const { user } = useAuth(); return user ? <Shell /> : <SignIn />; }
+export function App() {
+  const { user } = useAuth();
+  return user ? <ScheduleProvider><Shell /></ScheduleProvider> : <SignIn />;
+}

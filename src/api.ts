@@ -53,12 +53,22 @@ function fileToBase64(blob: Blob) {
 
 async function normalizeImage(file: File) {
   if (file.type === 'image/gif' || !file.type.startsWith('image/')) return { blob: file, mimeType: file.type || 'image/jpeg', fileName: file.name };
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return { blob: file, mimeType: file.type || 'image/jpeg', fileName: file.name };
+  }
   const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
   canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-  canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const context = canvas.getContext('2d');
+  if (!context) {
+    bitmap.close();
+    return { blob: file, mimeType: file.type || 'image/jpeg', fileName: file.name };
+  }
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.86));
   return { blob: blob || file, mimeType: blob ? 'image/jpeg' : file.type, fileName: blob ? `${file.name.replace(/\.[^.]+$/, '')}.jpg` : file.name };

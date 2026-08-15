@@ -19,6 +19,34 @@
   --hot-yellow: #ffd55f;
 }
 @font-face {
+  font-family: Montserrat;
+  src: url("@fontsource/montserrat/files/montserrat-latin-400-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Montserrat;
+  src: url("@fontsource/montserrat/files/montserrat-latin-700-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: Montserrat;
+  src: url("@fontsource/montserrat/files/montserrat-latin-800-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: Montserrat;
+  src: url("@fontsource/montserrat/files/montserrat-latin-900-normal.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+}
+@font-face {
   font-family: "Material Icons";
   src: url("/fonts/MaterialIcons.ttf") format("truetype");
   font-display: block;
@@ -299,6 +327,11 @@ a {
 .card-list {
   display: grid;
   gap: 1rem;
+}
+.card-list > .event-card,
+.card-list > .signup-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 520px;
 }
 .event-card {
   position: relative;

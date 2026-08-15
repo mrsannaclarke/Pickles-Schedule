@@ -518,40 +518,6 @@ function compareEvents(a: ScheduleEvent, b: ScheduleEvent): number {
   return aMs - bMs;
 }
 
-export function isEventOnOrAfterToday(event: ScheduleEvent, now = new Date()): boolean {
-  if (!event.dateTime) return true;
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const eventDate = new Date(event.dateTime.getFullYear(), event.dateTime.getMonth(), event.dateTime.getDate());
-  return eventDate.getTime() >= today.getTime();
-}
-
-export function excludePastEvents(data: ScheduleData, now = new Date()): ScheduleData {
-  const all = data.all.filter(event => isEventOnOrAfterToday(event, now));
-  return {
-    byTeam: groupEventsByTeam(all),
-    all,
-  };
-}
-
-export function groupEventsByTeam(events: ScheduleEvent[]): Record<TeamKey, ScheduleEvent[]> {
-  const grouped: Record<TeamKey, ScheduleEvent[]> = {
-    pickles: [],
-    bangers: [],
-    cherry_bombs: [],
-  };
-
-  for (const event of events) {
-    grouped[event.team].push(event);
-  }
-
-  for (const key of TEAM_KEYS) {
-    grouped[key].sort(compareEvents);
-  }
-
-  return grouped;
-}
-
 export function uniqueStaffNames(events: ScheduleEvent[]): string[] {
   const seen = new Set<string>();
   const ordered: string[] = [];
@@ -584,15 +550,6 @@ export function filterEventsByStaff(events: ScheduleEvent[], staffName: string):
   return events.filter(event => {
     const names = eventStaffing(event);
     return names.some(name => staffNameKey(name) === target);
-  });
-}
-
-export function filterEventsByAnyTattooer(events: ScheduleEvent[], names: string[]): ScheduleEvent[] {
-  const targets = names.map(name => staffNameKey(name)).filter(Boolean);
-  if (targets.length === 0) return [];
-  return events.filter(event => {
-    const staff = eventStaffing(event);
-    return staff.some(name => targets.includes(staffNameKey(name)));
   });
 }
 

@@ -34,7 +34,8 @@ export function ScheduleProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => { queueMicrotask(() => void load(false)); }, [load]);
-  const value = useMemo(() => ({ data, loading, refreshing, error, refresh: () => load(true) }), [data, error, load, loading, refreshing]);
+  const refresh = useCallback(() => load(true), [load]);
+  const value = useMemo(() => ({ data, loading, refreshing, error, refresh }), [data, error, loading, refresh, refreshing]);
   return <ScheduleContext.Provider value={value}>{children}</ScheduleContext.Provider>;
 }
 
