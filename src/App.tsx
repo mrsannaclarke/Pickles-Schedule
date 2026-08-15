@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { Calendar, House, Info, LogOut, MinusCircle, PlusCircle, RefreshCw, Sparkles, Star, UserPlus } from 'lucide-react';
+import { CalendarDays, Clock3, Info, LogOut, Menu, MinusCircle, PenTool, PlusCircle, RefreshCw, Sparkles, Star, X } from 'lucide-react';
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
@@ -154,14 +154,15 @@ function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: st
 function Shell() {
   const { user, signOut } = useAuth();
   const { pathname } = useLocation();
+  const [profileOpen, setProfileOpen] = useState(false);
   const currentTitle = pathname.startsWith('/my-games') ? 'My Games' : pathname.startsWith('/signup') ? 'Sign Up' : pathname.startsWith('/schedule') ? 'Schedule' : pathname.startsWith('/info') ? 'Info' : pathname.startsWith('/game/') ? 'Game Details' : 'Next Up';
-  return <div className="app-shell"><header className="user-bar"><NavLink className="brand-lockup" to="/" aria-label="Pickles Schedule home"><img src="/pickles-app-logo.png" alt="" /><span><strong>{currentTitle}</strong><small>Pickles Schedule</small></span></NavLink><div className="user-controls"><span><strong>{user?.displayName}</strong><small>{user?.email}</small></span><button onClick={signOut}><LogOut size={16} /> Switch User</button></div></header><Routes>
+  return <div className="app-shell"><header className="user-bar"><NavLink className="brand-lockup" to="/" aria-label="Pickles Schedule home"><img src="/pickles-app-logo.png" alt="" /><span><strong>{currentTitle}</strong><small>Pickles Schedule</small></span></NavLink><div className="profile-control"><button className="profile-trigger" aria-expanded={profileOpen} aria-controls="profile-menu" onClick={() => setProfileOpen((open) => !open)}><span><strong>{user?.displayName}</strong><small>Account</small></span>{profileOpen ? <X /> : <Menu />}</button>{profileOpen ? <div className="profile-menu" id="profile-menu"><div><strong>{user?.displayName}</strong><small>{user?.email}</small></div>{user?.canViewInfo ? <NavLink to="/info" onClick={() => setProfileOpen(false)}><Info /> App info</NavLink> : null}<button onClick={signOut}><LogOut /> Switch User</button></div> : null}</div></header><Routes>
     <Route path="/" element={<HomePage />} /><Route path="/schedule" element={<SchedulePage />} /><Route path="/signup" element={<SignupPage />} /><Route path="/my-games" element={<MyGamesPage />} /><Route path="/info" element={<InfoPage />} />
     <Route path="/game/:eventId" element={<Suspense fallback={<Status loading />}><GamePage /></Suspense>} />
     <Route path="/audit" element={<Suspense fallback={<Status loading />}><AuditPage /></Suspense>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes><nav className="bottom-nav">
-    <NavLink to="/"><House /><span>Next Up</span></NavLink><NavLink to="/schedule"><Calendar /><span>Schedule</span></NavLink><NavLink to="/my-games"><Star /><span>My Games</span></NavLink><NavLink to="/signup"><UserPlus /><span>Sign Up</span></NavLink>{user?.canViewInfo ? <NavLink to="/info"><Info /><span>Info</span></NavLink> : null}
+    <NavLink to="/"><Clock3 /><span>Next Up</span></NavLink><NavLink to="/schedule"><CalendarDays /><span>Schedule</span></NavLink><NavLink to="/my-games"><Star /><span>My Games</span></NavLink><NavLink to="/signup"><PenTool /><span>Sign Up</span></NavLink>
   </nav></div>;
 }
 
