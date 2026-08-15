@@ -189,6 +189,7 @@ a {
   gap: 1rem;
   margin-bottom: 1rem;
 }
+.page-header-actions-only { justify-content: flex-end; }
 .page-header h1,
 .details-header h1 {
   margin: 0;
@@ -311,9 +312,9 @@ a {
 .event-identity { min-width: 0; }
 .team-label { display: flex; align-items: center; gap: 0.38rem; }
 .team-icon { display: inline-grid; place-items: center; width: 21px; height: 21px; font-size: 20px; line-height: 1; font-weight: 400; text-transform: none; letter-spacing: normal; flex: 0 0 auto; }
-.team-icon-pickles { color: #3f83ff; }
-.team-icon-bangers { color: #f28b3c; }
-.team-icon-cherry_bombs { color: #ff5368; }
+.team-icon-pickles { color: #6fde8f; }
+.team-icon-bangers { color: #ff8c38; }
+.team-icon-cherry_bombs { color: #ff4e5e; }
 .material-icons { font-family: "Material Icons"; }
 .material-community-icons { font-family: "Material Community Icons"; }
 .card-title {

@@ -35,7 +35,7 @@ function SignIn() {
 function HomePage() {
   const { data, loading, error } = useSchedule();
   const next = useMemo(() => nextUpEvent(data.all), [data.all]);
-  return <Page title="Next Up" subtitle="The next staffed game on the test-season sheet.">
+  return <Page title="Next Up">
     <Status loading={loading} error={error} empty={!loading && !error && !next ? 'No staffed games found.' : undefined} />
     {next ? <EventCard event={next} /> : null}
   </Page>;
@@ -145,10 +145,10 @@ function InfoPage() {
   </Page>;
 }
 
-function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: string; subtitle: string }>) {
+function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: string; subtitle?: string }>) {
   const { refresh, refreshing } = useSchedule();
   const pageClass = `page page-${title.toLowerCase().replace(/\s+/g, '-')}`;
-  return <main className={pageClass}><header className="page-header"><p>{subtitle}</p><button className="refresh" onClick={() => void refresh()} disabled={refreshing}><RefreshCw size={18} className={refreshing ? 'spin' : ''} /> Refresh</button></header>{children}</main>;
+  return <main className={pageClass}><header className={`page-header${subtitle ? '' : ' page-header-actions-only'}`}>{subtitle ? <p>{subtitle}</p> : null}<button className="refresh" onClick={() => void refresh()} disabled={refreshing}><RefreshCw size={18} className={refreshing ? 'spin' : ''} /> Refresh</button></header>{children}</main>;
 }
 
 function Shell() {

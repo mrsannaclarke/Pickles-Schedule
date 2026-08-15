@@ -26,7 +26,7 @@ export const TEAM_META: Record<
   bangers: {
     title: 'Bangers Soccer',
     tint: '#7b4d2a',
-    themeColor: '#d6a375',
+    themeColor: '#ff8c38',
     cardBackground: '#2b211a',
     iconName: 'food-hot-dog',
     iconLibrary: 'material-community',
@@ -34,7 +34,7 @@ export const TEAM_META: Record<
   cherry_bombs: {
     title: 'Cherry Bombs Soccer',
     tint: '#ba3a3a',
-    themeColor: '#ff7f7f',
+    themeColor: '#ff4e5e',
     cardBackground: '#2d1919',
     iconName: 'bomb',
     iconLibrary: 'material-community',
