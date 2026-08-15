@@ -15,7 +15,7 @@ const TEAM_ICON_GLYPHS = {
 
 function TeamIcon({ team }: { team: ScheduleEvent['team'] }) {
   const isMaterialIcon = team === 'pickles';
-  return <span className={`team-icon ${isMaterialIcon ? 'material-icons' : 'material-community-icons'}`} aria-hidden="true">{TEAM_ICON_GLYPHS[team]}</span>;
+  return <span className={`team-icon team-icon-${team} ${isMaterialIcon ? 'material-icons' : 'material-community-icons'}`} aria-hidden="true">{TEAM_ICON_GLYPHS[team]}</span>;
 }
 
 export function Status({ loading, error, empty }: { loading?: boolean; error?: string | null; empty?: string }) {
