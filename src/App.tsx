@@ -97,9 +97,7 @@ function SignupPage() {
 function MyGamesPage() {
   const { user } = useAuth(); const { data, loading, error } = useSchedule();
   const artistOptions = useMemo(() => uniqueStaffNames(data.all), [data.all]);
-  const defaultArtist = user?.email.toLowerCase() === 'anatomytattoo@gmail.com'
-    ? 'Tomma'
-    : user?.matchNames[0] || user?.displayName || '';
+  const defaultArtist = user?.matchNames[0] || user?.displayName || '';
   const [selectedArtist, setSelectedArtist] = useState(defaultArtist);
 
   const events = useMemo(() => selectedArtist ? filterEventsByStaff(data.all, selectedArtist) : [], [data.all, selectedArtist]);
