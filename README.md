@@ -23,8 +23,8 @@ npm audit --omit=dev
 
 ## Cloudflare Pages
 
-- Build command: `npm run build`
-- Output directory: `dist`
+- Production URL: `https://anatomy-pickles.pages.dev/`
+- Deploy command: `npm run deploy`
 - SPA routing: `public/_redirects` sends unmatched routes to `index.html`
 - Add the final `https://<project>.pages.dev` origin to the existing Google OAuth web client before testing Google sign-in.
 
