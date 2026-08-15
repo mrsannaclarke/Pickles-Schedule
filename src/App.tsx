@@ -54,8 +54,13 @@ function SignupPage() {
   const { data, loading, error, refresh } = useSchedule();
   const [busyId, setBusyId] = useState<string | null>(null);
   const options = useMemo(() => uniqueStaffNames(data.all), [data.all]);
-  const [adminClaimName, setAdminClaimName] = useState('Tomma');
-  const claimName = user?.canViewInfo ? adminClaimName : user?.matchNames[0] || user?.displayName || '';
+  const loggedInArtist = user?.matchNames[0] || user?.displayName || '';
+  const [adminClaimName, setAdminClaimName] = useState(loggedInArtist);
+  const pickerOptions = useMemo(() => {
+    if (!loggedInArtist || options.some((name) => normalizeStaffName(name) === normalizeStaffName(loggedInArtist))) return options;
+    return [loggedInArtist, ...options];
+  }, [loggedInArtist, options]);
+  const claimName = user?.canViewInfo ? adminClaimName : loggedInArtist;
   const open = useMemo(() => data.all.filter((event) => Boolean(event.theme?.trim()) && eventBlockedSlotCount(event) < 2 && eventClaimableOpenSlots(event) > 0), [data.all]);
 
   const run = async (event: ScheduleEvent, action: 'claim' | 'optout') => {
@@ -76,7 +81,7 @@ function SignupPage() {
   };
 
   return <Page title="Sign Up" subtitle="Games that still have an open staffing spot.">
-    {user?.canViewInfo ? <label className="admin-picker"><span>Sign up as</span><select value={adminClaimName} onChange={(event) => setAdminClaimName(event.target.value)}>{options.map((name) => <option key={name}>{name}</option>)}</select></label> : null}
+    {user?.canViewInfo ? <label className="admin-picker"><span>Sign up as</span><select value={adminClaimName} onChange={(event) => setAdminClaimName(event.target.value)}>{pickerOptions.map((name) => <option key={name}>{name}</option>)}</select></label> : null}
     <Status loading={loading} error={error} empty={!loading && !error && !open.length ? 'No open games found.' : undefined} />
     <div className="card-list">{open.map((event) => {
       const staff = eventStaffing(event);
