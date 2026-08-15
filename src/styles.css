@@ -325,6 +325,7 @@ a {
   margin: 0.2rem 0 0;
   font-family: var(--display-font);
   letter-spacing: -0.02em;
+  text-align: center;
 }
 .event-meta {
   display: flex;
@@ -383,7 +384,7 @@ a {
 .flash-art { margin-top: 0.9rem; }
 .flash-art > span { display: block; margin-bottom: 0.55rem; color: #aeb8bf; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
 .signup-card { border-radius: 17px; background: #151b1f; border: 1px solid #303a40; overflow: hidden; }
-.signup-card .event-card { border-width: 0 0 1px; border-radius: 0; }
+.signup-card .event-card { border-width: 2px; border-radius: 12px; }
 .solo-star { display: flex; align-items: center; gap: 0.4rem; padding: 0.7rem 1rem 0; color: #ffd33d; font-weight: 800; }
 .signup-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; padding: 0.8rem 1rem 0; color: #ffd33d; }
 .signup-summary span { color: #ffadb8; font-size: 0.85rem; }
