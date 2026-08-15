@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
 import { Calendar, House, Info, LogOut, MinusCircle, PlusCircle, RefreshCw, Sparkles, Star, UserPlus } from 'lucide-react';
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
 import { useSchedule } from './schedule-context';
@@ -147,12 +147,15 @@ function InfoPage() {
 
 function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: string; subtitle: string }>) {
   const { refresh, refreshing } = useSchedule();
-  return <main className="page"><header className="page-header"><div><h1>{title}</h1><p>{subtitle}</p></div><button className="refresh" onClick={() => void refresh()} disabled={refreshing}><RefreshCw size={18} className={refreshing ? 'spin' : ''} /> Refresh</button></header>{children}</main>;
+  const pageClass = `page page-${title.toLowerCase().replace(/\s+/g, '-')}`;
+  return <main className={pageClass}><header className="page-header"><div><h1>{title}</h1><p>{subtitle}</p></div><button className="refresh" onClick={() => void refresh()} disabled={refreshing}><RefreshCw size={18} className={refreshing ? 'spin' : ''} /> Refresh</button></header>{children}</main>;
 }
 
 function Shell() {
   const { user, signOut } = useAuth();
-  return <div className="app-shell"><header className="user-bar"><NavLink className="brand-lockup" to="/" aria-label="Pickles Schedule home"><img src="/pickles-app-logo.png" alt="" /><span><strong>Pickles Schedule</strong><small>Anatomy Tattoo</small></span></NavLink><div className="user-controls"><span><strong>{user?.displayName}</strong><small>{user?.email}</small></span><button onClick={signOut}><LogOut size={16} /> Switch User</button></div></header><Routes>
+  const { pathname } = useLocation();
+  const currentTitle = pathname.startsWith('/my-games') ? 'My Games' : pathname.startsWith('/signup') ? 'Sign Up' : pathname.startsWith('/schedule') ? 'Schedule' : pathname.startsWith('/info') ? 'Info' : pathname.startsWith('/game/') ? 'Game Details' : 'Next Up';
+  return <div className="app-shell"><header className="user-bar"><NavLink className="brand-lockup" to="/" aria-label="Pickles Schedule home"><img src="/pickles-app-logo.png" alt="" /><span><strong>{currentTitle}</strong><small>Pickles Schedule</small></span></NavLink><div className="user-controls"><span><strong>{user?.displayName}</strong><small>{user?.email}</small></span><button onClick={signOut}><LogOut size={16} /> Switch User</button></div></header><Routes>
     <Route path="/" element={<HomePage />} /><Route path="/schedule" element={<SchedulePage />} /><Route path="/signup" element={<SignupPage />} /><Route path="/my-games" element={<MyGamesPage />} /><Route path="/info" element={<InfoPage />} />
     <Route path="/game/:eventId" element={<Suspense fallback={<Status loading />}><GamePage /></Suspense>} />
     <Route path="/audit" element={<Suspense fallback={<Status loading />}><AuditPage /></Suspense>} />

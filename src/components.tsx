@@ -1,5 +1,5 @@
 import { memo, useRef, useState } from 'react';
-import { CalendarDays, ClipboardList, CloudUpload, FileText } from 'lucide-react';
+import { CalendarDays, ClipboardList, CloudUpload, FileText, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatEventDate, TEAM_META, toThumbnailUrl, type ScheduleEvent } from '../lib/schedule';
 import { uploadArt } from './api';
@@ -31,22 +31,24 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
   };
 
   return <article className="event-card" style={{ '--team': meta.themeColor, '--card': meta.cardBackground } as React.CSSProperties}>
-    {photos.length ? <div className="photo-grid">{photos.map((url, index) =>
-      <a href={event.artOpenUrls[index] || url} target="_blank" rel="noreferrer" key={`${url}-${index}`}>
-        <img src={toThumbnailUrl(url, 480)} alt={`Flash art ${index + 1}`} loading="lazy" decoding="async" />
-      </a>)}</div> : null}
     <div className="event-card-body">
-      <div className="eyebrow">{meta.title}</div>
-      <Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link>
-      <div className="event-meta"><CalendarDays size={16} /> {formatEventDate(event)}</div>
+      <div className="event-card-heading">
+        <div className="event-date"><CalendarDays size={22} /><strong>{formatEventDate(event)}</strong></div>
+        <div className="event-identity"><div className="eyebrow">{meta.title}</div><Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link></div>
+      </div>
       <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
       {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
     </div>
+    {photos.length ? <div className="flash-art"><span>Flash art</span><div className="photo-grid">{photos.map((url, index) =>
+      <a href={event.artOpenUrls[index] || url} target="_blank" rel="noreferrer" key={`${url}-${index}`}>
+        <img src={toThumbnailUrl(url, 480)} alt={`Flash art ${index + 1}`} loading="lazy" decoding="async" />
+      </a>)}</div></div> : null}
     <div className="card-actions">
-      <button className="icon-button upload-action" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><CloudUpload size={19} />{busy ? ' Uploading…' : ' Upload art'}</button>
+      <button className="icon-button upload-action" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><CloudUpload />{busy ? 'Uploading…' : 'Upload Art'}</button>
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={(e) => void onFile(e.target.files?.[0])} />
-      {event.responsesUrl ? <a className="icon-button" href={event.responsesUrl} target="_blank" rel="noreferrer"><ClipboardList size={19} /> Responses</a> : null}
-      {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><FileText size={19} /> Sign Up Form</a> : null}
+      {event.responsesUrl ? <a className="icon-button" href={event.responsesUrl} target="_blank" rel="noreferrer"><ClipboardList />Responses</a> : null}
+      {event.signUpUrl ? <a className="icon-button form-action" href={event.signUpUrl} target="_blank" rel="noreferrer"><FileText />Sign Up Form</a> : null}
+      <Link className="icon-button details-action" to={`/game/${encodeURIComponent(event.id)}`}><Info />Details</Link>
     </div>
   </article>;
 });
