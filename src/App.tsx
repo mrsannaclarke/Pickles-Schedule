@@ -136,7 +136,6 @@ function InfoPage() {
   if (!user?.canViewInfo) return <Navigate to="/" replace />;
   return <Page title="Info" subtitle="Test-season app configuration.">
     <section className="info-card"><p>Signed in as <strong>{user?.email}</strong></p><p className="access-code">CODE 4587</p>
-      <p>This React + Vite build uses the completed season’s sheet as writable test data.</p>
       <p>Signup forms and signup entry sheets are generated 10 days in advance. Authorized staff can claim games, update slots, and upload flash.</p>
       <div className="link-row"><a href="https://www.portlandpicklesbaseball.com" target="_blank" rel="noreferrer">Pickles</a><a href="https://www.cherrybombers.com" target="_blank" rel="noreferrer">Cherry Bombs</a><a href="https://www.portlandbangers.com" target="_blank" rel="noreferrer">Bangers</a></div>
       {user?.canViewInfo ? <NavLink className="button-link" to="/audit">Open audit log</NavLink> : null}

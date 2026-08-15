@@ -319,12 +319,26 @@ a {
 .card-calendar-link:focus-visible, .team-map-link:focus-visible { outline: 2px solid #f7f3ea; outline-offset: 3px; }
 .card-calendar-link svg { display: block; }
 .event-identity { min-width: 0; }
-.team-label { display: flex; align-items: center; gap: 0.38rem; }
-.team-map-link { color: inherit; }
-.team-icon { display: inline-grid; place-items: center; width: 21px; height: 21px; font-size: 20px; line-height: 1; font-weight: 400; text-transform: none; letter-spacing: normal; flex: 0 0 auto; }
-.team-icon-pickles { color: var(--hot-green); }
-.team-icon-bangers { color: var(--hot-orange); }
-.team-icon-cherry_bombs { color: var(--hot-red); }
+.team-label { display: flex; align-items: center; gap: 0.52rem; }
+.team-map-link { width: 44px; height: 44px; color: var(--team); }
+.team-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  flex: 0 0 auto;
+  color: var(--team);
+  background: linear-gradient(145deg, #fff 10%, color-mix(in srgb, var(--team) 78%, #fff) 48%, var(--team) 82%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--team) 50%, transparent));
+}
 .material-icons { font-family: "Material Icons"; }
 .material-community-icons { font-family: "Material Community Icons"; }
 .card-title {
@@ -431,10 +445,27 @@ a {
 .back-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  gap: 0.58rem;
+  min-height: 50px;
+  padding: 0.45rem 0.82rem 0.45rem 0.48rem;
   text-decoration: none;
-  margin-bottom: 1rem;
+  margin-bottom: 1.1rem;
+  border: 2px solid var(--team);
+  border-radius: 14px 9px 14px 10px;
+  color: #fff;
+  background: color-mix(in srgb, var(--team) 14%, #171d21);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--team) 55%, #080a0b);
+  font-family: var(--display-font);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
 }
+.back-link:hover { transform: translate(-1px, -1px); background: color-mix(in srgb, var(--team) 23%, #171d21); box-shadow: 5px 5px 0 color-mix(in srgb, var(--team) 55%, #080a0b); }
+.back-link:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 color-mix(in srgb, var(--team) 55%, #080a0b); }
+.back-link:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.back-link-icon { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #101417; background: var(--team); }
+.back-link-spark { color: var(--team); font-size: 1.1rem; transform: rotate(12deg); }
 .details-header {
   border: 2px solid var(--team);
   border-radius: 13px 9px 15px 10px;
