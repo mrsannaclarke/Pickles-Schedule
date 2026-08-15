@@ -15,7 +15,7 @@ function SignIn() {
   const [password, setPassword] = useState('');
   return <main className="signin-shell">
     <section className="signin-card">
-      <img className="app-mark" src="/icon-192.png" alt="Pickles Schedule" />
+      <img className="app-mark" src="/pickles-app-logo.png" alt="Pickles Schedule anatomical heart logo" />
       <p className="eyebrow">Anatomy Tattoo</p><h1>Pickles Schedule</h1>
       <p className="muted">Staff scheduling, flash uploads, signup forms, and game details.</p>
       <button className="primary wide" disabled={auth.signingIn} onClick={auth.signIn}>{auth.signingIn ? 'Opening Google…' : 'Continue with Google'}</button>
