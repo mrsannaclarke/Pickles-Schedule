@@ -137,6 +137,13 @@ function InfoPage() {
   return <Page title="Info" subtitle="Test-season app configuration.">
     <section className="info-card"><p>Signed in as <strong>{user?.email}</strong></p><p className="access-code">CODE 4587</p>
       <p>Signup forms and signup entry sheets are generated 10 days in advance. Authorized staff can claim games, update slots, and upload flash.</p>
+      <section className="generator-demo" aria-labelledby="generator-demo-title">
+        <h2 id="generator-demo-title">How the generator works</h2>
+        <video controls playsInline preload="metadata" aria-label="How the Pickles signup generator works">
+          <source src="/media/how-generator-works.mp4" type="video/mp4" />
+          Your browser does not support embedded video.
+        </video>
+      </section>
       <div className="link-row"><a href="https://www.portlandpicklesbaseball.com" target="_blank" rel="noreferrer">Pickles</a><a href="https://www.cherrybombers.com" target="_blank" rel="noreferrer">Cherry Bombs</a><a href="https://www.portlandbangers.com" target="_blank" rel="noreferrer">Bangers</a></div>
       {user?.canViewInfo ? <NavLink className="button-link" to="/audit">Open audit log</NavLink> : null}
       <button className="danger" onClick={signOut}><LogOut size={17} /> Sign out</button>
