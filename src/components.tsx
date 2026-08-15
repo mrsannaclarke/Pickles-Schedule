@@ -7,6 +7,17 @@ import { useAuth } from './auth';
 import { useSchedule } from './schedule-context';
 import { ColoredStaffNames } from './staff-colors';
 
+const TEAM_ICON_GLYPHS = {
+  pickles: '\uea51',
+  bangers: '\udb86\udc4b',
+  cherry_bombs: '\udb81\ude91',
+} as const;
+
+function TeamIcon({ team }: { team: ScheduleEvent['team'] }) {
+  const isMaterialIcon = team === 'pickles';
+  return <span className={`team-icon ${isMaterialIcon ? 'material-icons' : 'material-community-icons'}`} aria-hidden="true">{TEAM_ICON_GLYPHS[team]}</span>;
+}
+
 export function Status({ loading, error, empty }: { loading?: boolean; error?: string | null; empty?: string }) {
   if (loading) return <div className="status-card"><span className="spinner" /> Loading schedule…</div>;
   if (error) return <div className="status-card error">{error}</div>;
@@ -34,7 +45,7 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
     <div className="event-card-body">
       <div className="event-card-heading">
         <div className="event-date"><CalendarDays size={22} /><strong>{formatEventDate(event)}</strong></div>
-        <div className="event-identity"><div className="eyebrow">{meta.title}</div><Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link></div>
+        <div className="event-identity"><div className="eyebrow team-label"><TeamIcon team={event.team} />{meta.title}</div><Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link></div>
       </div>
       <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
       {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
