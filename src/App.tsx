@@ -4,10 +4,10 @@ import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
 import { useSchedule } from './schedule-context';
-import { eventBlockedSlotCount, eventClaimableOpenSlots, eventStaffing, filterEventsByAnyTattooer, hasMinimumPublishedStaff, nextUpEvent, uniqueStaffNames, type ScheduleEvent } from '../lib/schedule';
+import { eventBlockedSlotCount, eventClaimableOpenSlots, eventStaffing, filterEventsByStaff, hasMinimumPublishedStaff, nextUpEvent, uniqueStaffNames, type ScheduleEvent } from '../lib/schedule';
 import { claimSpot, optOutGame } from './api';
 import { canManageGameOptOut, claimRule } from './permissions';
-import { normalizeStaffName } from './staff-colors';
+import { normalizeStaffName, staffNameColor } from './staff-colors';
 
 const GamePage = lazy(() => import('./pages/GamePage'));
 const AuditPage = lazy(() => import('./pages/AuditPage'));
@@ -97,10 +97,37 @@ function SignupPage() {
 
 function MyGamesPage() {
   const { user } = useAuth(); const { data, loading, error } = useSchedule();
-  const events = useMemo(() => user ? filterEventsByAnyTattooer(data.all, [...user.matchNames, user.displayName]) : [], [data.all, user]);
-  return <Page title="My Games" subtitle={`Games assigned to ${user?.displayName || 'you'}.`}>
-    <Status loading={loading} error={error} empty={!loading && !error && !events.length ? 'You have no games on this sheet.' : undefined} />
-    <div className="card-list">{events.map((event) => <EventCard event={event} key={event.id} />)}</div>
+  const artistOptions = useMemo(() => uniqueStaffNames(data.all), [data.all]);
+  const defaultArtist = user?.email.toLowerCase() === 'anatomytattoo@gmail.com'
+    ? 'Tomma'
+    : user?.matchNames[0] || user?.displayName || '';
+  const [selectedArtist, setSelectedArtist] = useState(defaultArtist);
+
+  const events = useMemo(() => selectedArtist ? filterEventsByStaff(data.all, selectedArtist) : [], [data.all, selectedArtist]);
+  const confirmed = useMemo(() => events.filter((event) => event.tattooers.length !== 1), [events]);
+  const needsStaffing = useMemo(() => events.filter((event) => event.tattooers.length === 1), [events]);
+  const pickerOptions = useMemo(() => {
+    if (!defaultArtist || artistOptions.some((name) => normalizeStaffName(name) === normalizeStaffName(defaultArtist))) return artistOptions;
+    return [defaultArtist, ...artistOptions];
+  }, [artistOptions, defaultArtist]);
+
+  return <Page title="My Games" subtitle="Review an artist’s assignments and open staffing needs.">
+    <section className="artist-toolbar" aria-label="Artist game filter">
+      <label htmlFor="artist-picker">View games for</label>
+      <div className="artist-select-wrap">
+        <span className="artist-dot" style={{ background: staffNameColor(selectedArtist) }} aria-hidden="true" />
+        <select id="artist-picker" value={selectedArtist} onChange={(event) => setSelectedArtist(event.target.value)}>
+          {pickerOptions.map((name) => <option key={name} value={name}>{name}</option>)}
+        </select>
+      </div>
+      <div className="game-summary" aria-label="Game totals">
+        <span><strong>{confirmed.length}</strong> confirmed</span>
+        <span><strong>{needsStaffing.length}</strong> need staffing</span>
+      </div>
+    </section>
+    <Status loading={loading} error={error} empty={!loading && !error && !events.length ? `${selectedArtist || 'This artist'} has no games on this sheet.` : undefined} />
+    {confirmed.length ? <section className="game-section"><div className="section-heading"><h2>Confirmed games</h2><span>{confirmed.length}</span></div><div className="card-list">{confirmed.map((event) => <EventCard event={event} key={event.id} />)}</div></section> : null}
+    {needsStaffing.length ? <section className="game-section needs-staffing"><div className="section-heading"><h2>Needs another artist</h2><span>{needsStaffing.length}</span></div><p className="section-note">These games currently have only one assigned artist.</p><div className="card-list">{needsStaffing.map((event) => <EventCard event={event} key={event.id} />)}</div></section> : null}
   </Page>;
 }
 
@@ -125,7 +152,7 @@ function Page({ title, subtitle, children }: React.PropsWithChildren<{ title: st
 
 function Shell() {
   const { user, signOut } = useAuth();
-  return <div className="app-shell"><header className="user-bar"><span><strong>{user?.displayName}</strong><small>{user?.email}</small></span><button onClick={signOut}><LogOut size={16} /> Switch User</button></header><Routes>
+  return <div className="app-shell"><header className="user-bar"><NavLink className="brand-lockup" to="/" aria-label="Pickles Schedule home"><img src="/pickles-app-logo.png" alt="" /><span><strong>Pickles Schedule</strong><small>Anatomy Tattoo</small></span></NavLink><div className="user-controls"><span><strong>{user?.displayName}</strong><small>{user?.email}</small></span><button onClick={signOut}><LogOut size={16} /> Switch User</button></div></header><Routes>
     <Route path="/" element={<HomePage />} /><Route path="/schedule" element={<SchedulePage />} /><Route path="/signup" element={<SignupPage />} /><Route path="/my-games" element={<MyGamesPage />} /><Route path="/info" element={<InfoPage />} />
     <Route path="/game/:eventId" element={<Suspense fallback={<Status loading />}><GamePage /></Suspense>} />
     <Route path="/audit" element={<Suspense fallback={<Status loading />}><AuditPage /></Suspense>} />

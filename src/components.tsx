@@ -35,11 +35,13 @@ export const EventCard = memo(function EventCard({ event }: { event: ScheduleEve
       <a href={event.artOpenUrls[index] || url} target="_blank" rel="noreferrer" key={`${url}-${index}`}>
         <img src={toThumbnailUrl(url, 480)} alt={`Flash art ${index + 1}`} loading="lazy" decoding="async" />
       </a>)}</div> : null}
-    <div className="eyebrow">{meta.title}</div>
-    <Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link>
-    <div className="event-meta"><CalendarDays size={16} /> {formatEventDate(event)}</div>
-    <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
-    {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
+    <div className="event-card-body">
+      <div className="eyebrow">{meta.title}</div>
+      <Link className="card-title" to={`/game/${encodeURIComponent(event.id)}`}>{event.theme || 'Untitled Theme'}</Link>
+      <div className="event-meta"><CalendarDays size={16} /> {formatEventDate(event)}</div>
+      <ColoredStaffNames prefix="Staffing" names={event.staffNames.length ? event.staffNames : event.tattooers} />
+      {event.opponent ? <div className="event-meta">VS — {event.opponent}</div> : null}
+    </div>
     <div className="card-actions">
       <button className="icon-button upload-action" disabled={busy || !user} onClick={() => inputRef.current?.click()} aria-label="Upload art"><CloudUpload size={19} />{busy ? ' Uploading…' : ' Upload art'}</button>
       <input ref={inputRef} hidden type="file" accept="image/*" onChange={(e) => void onFile(e.target.files?.[0])} />
