@@ -1,6 +1,6 @@
 export const SCHEDULE_ENDPOINT =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SCHEDULE_ENDPOINT) ||
-  'https://script.google.com/macros/s/AKfycbw8fgHWA_1GLhs1GFUoIlKrzx6crRzZuZNhzje9ojoQThvA_F2SLLHmeh026fhwzqKMFQ/exec';
+  'https://anatomy-pickles-api.mrs-annaclarke.workers.dev/schedule';
 
 export type TeamKey = 'pickles' | 'bangers' | 'cherry_bombs';
 

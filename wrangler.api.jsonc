@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "anatomy-pickles-api",
+  "main": "worker/schedule-proxy.ts",
+  "compatibility_date": "2026-08-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "SCHEDULE_ORIGIN": "https://script.google.com/macros/s/AKfycbw8fgHWA_1GLhs1GFUoIlKrzx6crRzZuZNhzje9ojoQThvA_F2SLLHmeh026fhwzqKMFQ/exec"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  }
+}
