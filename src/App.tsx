@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { CalendarDays, Clock3, DoorOpen, Info, LogOut, Menu, PartyPopper, PenTool, RefreshCw, Sparkles, Star, X } from 'lucide-react';
+import { CalendarDays, CircleX, Clock3, Info, LogOut, Menu, PenTool, RefreshCw, Sparkles, Star, UserRoundPlus, X } from 'lucide-react';
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { EventCard, Status } from './components';
 import { useAuth } from './auth';
@@ -92,8 +92,8 @@ function SignupPage() {
         {event.tattooers.length === 1 ? <div className="solo-star" title="Solo artist staffed"><Sparkles size={26} /> Solo artist</div> : null}
         <EventCard event={event} />
         <div className="signup-summary"><strong>{openSlots} open {openSlots === 1 ? 'spot' : 'spots'}</strong>{!rule.ok ? <span>{rule.message}</span> : null}</div>
-        <div className="signup-actions"><button className="primary signup-claim" disabled={busyId === event.id || alreadyClaimed || !rule.ok} onClick={() => void run(event, 'claim')}><PartyPopper />{busyId === event.id ? 'Signing Up…' : alreadyClaimed ? 'Already Signed Up' : !rule.ok ? 'Unavailable' : 'Sign Up'}</button>
-        {canManageGameOptOut(user) ? <button className="danger signup-optout" disabled={busyId === event.id} onClick={() => void run(event, 'optout')}><DoorOpen /> Opt Out Game</button> : null}</div>
+        <div className="signup-actions"><button className="primary signup-claim" disabled={busyId === event.id || alreadyClaimed || !rule.ok} onClick={() => void run(event, 'claim')}><UserRoundPlus />{busyId === event.id ? 'Signing Up…' : alreadyClaimed ? 'Already Signed Up' : !rule.ok ? 'Unavailable' : 'Sign Up'}</button>
+        {canManageGameOptOut(user) ? <button className="danger signup-optout" disabled={busyId === event.id} onClick={() => void run(event, 'optout')}><CircleX /> Opt Out Game</button> : null}</div>
       </section>;
     })}</div>
   </Page>;

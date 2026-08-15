@@ -456,9 +456,9 @@ a {
 .signup-summary span { color: #ffadb8; font-size: 0.85rem; }
 .signup-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; padding: 0.8rem 1rem 1rem; }
 .signup-actions button { flex: 1 1 145px; min-height: 52px; font-weight: 900; }
-.signup-actions button svg { width: 25px; height: 25px; padding: 3px; border-radius: 50%; stroke-width: 2.2; }
-.signup-claim svg { color: #101417; background: var(--hot-yellow); transform: rotate(-8deg); }
-.signup-optout svg { color: #fff; background: #8f2633; transform: rotate(5deg); }
+.signup-actions button svg { flex: 0 0 auto; width: 28px; height: 28px; stroke-width: 2.6; }
+.signup-claim svg { color: var(--hot-yellow); }
+.signup-optout svg { color: #ffabb5; }
 .admin-picker { display: grid; gap: 0.4rem; color: #b8c4cb; margin-bottom: 0.8rem; }
 .admin-picker select { border: 1px solid #46515a; border-radius: 9px; background: #161c20; color: #eef4f7; padding: 0.7rem; }
 .photo-grid {
